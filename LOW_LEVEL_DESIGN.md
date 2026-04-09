@@ -1,0 +1,1090 @@
+# Veloskyra Airlines — Low Level Design Document
+
+**Version:** 1.0  
+**Stack:** .NET 10 · Angular 21 · SQL Server 2022 · RabbitMQ 3 · Razorpay · Docker  
+**Pattern:** Microservices · SAGA Choreography · Clean Architecture · Event-Driven
+
+---
+
+## Table of Contents
+
+1. [Class Diagrams](#1-class-diagrams)
+2. [Sequence Diagrams](#2-sequence-diagrams)
+3. [State Diagrams](#3-state-diagrams)
+4. [Activity Diagrams](#4-activity-diagrams)
+5. [Component Diagrams](#5-component-diagrams)
+6. [Database Schema Diagrams](#6-database-schema-diagrams)
+7. [Method-Level Design](#7-method-level-design)
+8. [Error Handling Design](#8-error-handling-design)
+9. [Algorithm Design](#9-algorithm-design)
+
+---
+
+## 1. Class Diagrams
+
+### 1.1 AuthService Class Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          AUTH SERVICE                                       │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                         DOMAIN LAYER                                 │  │
+│  │                                                                      │  │
+│  │  ┌──────────────────────┐    ┌──────────────────────────────────┐   │  │
+│  │  │        User          │    │         RefreshToken             │   │  │
+│  │  ├──────────────────────┤    ├──────────────────────────────────┤   │  │
+│  │  │ +Id: int             │    │ +Id: int                         │   │  │
+│  │  │ +FullName: string    │◄───│ +UserId: int                     │   │  │
+│  │  │ +Email: string       │    │ +Token: string                   │   │  │
+│  │  │ +PasswordHash: string│    │ +ExpiryDate: DateTime            │   │  │
+│  │  │ +Role: string        │    │ +IsRevoked: bool                 │   │  │
+│  │  │ +RewardPoints: int   │    │ +CreatedAt: DateTime             │   │  │
+│  │  │ +CreatedAt: DateTime │    └──────────────────────────────────┘   │  │
+│  │  └──────────────────────┘                                            │  │
+│  │           ▲                  ┌──────────────────────────────────┐   │  │
+│  │           │                  │       RewardPointsLog            │   │  │
+│  │           │                  ├──────────────────────────────────┤   │  │
+│  │           └──────────────────│ +UserId: int                     │   │  │
+│  │                              │ +Points: int (+earn / -redeem)   │   │  │
+│  │                              │ +Type: string (Earned/Redeemed/  │   │  │
+│  │                              │         Refunded)                │   │  │
+│  │                              │ +Description: string             │   │  │
+│  │                              │ +ReferenceId: string?            │   │  │
+│  │                              └──────────────────────────────────┘   │  │
+│  │                                                                      │  │
+│  │  ┌──────────────────────────────────────────────────────────────┐   │  │
+│  │  │                   PasswordResetToken                         │   │  │
+│  │  ├──────────────────────────────────────────────────────────────┤   │  │
+│  │  │ +UserId: int  +Token: string (BCrypt hash)                   │   │  │
+│  │  │ +ExpiryDate: DateTime  +IsUsed: bool                         │   │  │
+│  │  └──────────────────────────────────────────────────────────────┘   │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                      APPLICATION LAYER                               │  │
+│  │                                                                      │  │
+│  │  «interface»                                                         │  │
+│  │  ┌──────────────────────────────────────────────────────────────┐   │  │
+│  │  │                       IAuthService                           │   │  │
+│  │  ├──────────────────────────────────────────────────────────────┤   │  │
+│  │  │ +RegisterAsync(dto): Task<string>                            │   │  │
+│  │  │ +LoginAsync(dto): Task<LoginResponseDto>                     │   │  │
+│  │  │ +RefreshTokenAsync(token): Task<LoginResponseDto>            │   │  │
+│  │  │ +RevokeRefreshTokenAsync(token): Task                        │   │  │
+│  │  │ +GetProfileAsync(userId): Task<UserResponseDto>              │   │  │
+│  │  │ +UpdateProfileAsync(userId, dto): Task                       │   │  │
+│  │  │ +ChangePasswordAsync(userId, dto): Task                      │   │  │
+│  │  │ +ForgotPasswordAsync(dto): Task                              │   │  │
+│  │  │ +ResetPasswordAsync(dto): Task                               │   │  │
+│  │  │ +GetRewardPointsAsync(userId): Task<RewardPointsDto>         │   │  │
+│  │  │ +EarnPointsAsync(dto): Task                                  │   │  │
+│  │  │ +RedeemPointsAsync(userId, dto): Task<RedeemPointsResultDto> │   │  │
+│  │  │ +RefundPointsAsync(userId, referenceId): Task                │   │  │
+│  │  └──────────────────────────────────────────────────────────────┘   │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                    INFRASTRUCTURE LAYER                              │  │
+│  │                                                                      │  │
+│  │  ┌──────────────────────────┐   ┌──────────────────────────────┐   │  │
+│  │  │     AuthServiceImpl      │   │        TokenService          │   │  │
+│  │  │  implements IAuthService │   ├──────────────────────────────┤   │  │
+│  │  ├──────────────────────────┤   │ +GenerateAccessToken(user)   │   │  │
+│  │  │ -_db: AuthDbContext       │   │   : string (JWT, 15 min)     │   │  │
+│  │  │ -_tokenService           │   │ +GenerateRefreshToken(userId)│   │  │
+│  │  │ -_emailService           │   │   : RefreshToken (7 days)    │   │  │
+│  │  │ +LoginInternalAsync()    │   └──────────────────────────────┘   │  │
+│  │  │ +RefreshTokenInternalAsync()                                     │  │
+│  │  │ +CalculateEarnedPoints() │                                       │  │
+│  │  └──────────────────────────┘                                       │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 1.2 FlightService Class Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         FLIGHT SERVICE                                      │
+│                                                                             │
+│  DOMAIN                                                                     │
+│  ┌──────────────────┐    ┌──────────────────────────────────────────────┐  │
+│  │     Airport      │    │                  Flight                      │  │
+│  ├──────────────────┤    ├──────────────────────────────────────────────┤  │
+│  │ +Id: int         │◄───│ +OriginAirportId: int                        │  │
+│  │ +Name: string    │◄───│ +DestinationAirportId: int                   │  │
+│  │ +Code: string    │    │ +FlightNumber: string                        │  │
+│  │ +City: string    │    │ +Airline: string                             │  │
+│  │ +Country: string │    │ +TotalEconomySeats: int                      │  │
+│  └──────────────────┘    │ +TotalBusinessSeats: int                     │  │
+│                           │ +IsActive: bool                              │  │
+│                           └──────────────────────────────────────────────┘  │
+│                                          ▲                                  │
+│                                          │ 1..*                             │
+│                           ┌──────────────────────────────────────────────┐  │
+│                           │                Schedule                      │  │
+│                           ├──────────────────────────────────────────────┤  │
+│                           │ +FlightId: int                               │  │
+│                           │ +DepartureTime: DateTime                     │  │
+│                           │ +ArrivalTime: DateTime                       │  │
+│                           │ +EconomyPrice: decimal                       │  │
+│                           │ +BusinessPrice: decimal                      │  │
+│                           │ +AvailableEconomySeats: int                  │  │
+│                           │ +AvailableBusinessSeats: int                 │  │
+│                           │ +Status: string (Scheduled/Delayed/Cancelled)│  │
+│                           └──────────────────────────────────────────────┘  │
+│                                                                             │
+│  APPLICATION INTERFACES                                                     │
+│  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────┐ │
+│  │   IFlightService     │  │   IScheduleService   │  │  IAirportService │ │
+│  ├──────────────────────┤  ├──────────────────────┤  ├──────────────────┤ │
+│  │ +GetAllAsync()       │  │ +SearchAsync(dto)    │  │ +GetAllAsync()   │ │
+│  │ +CreateAsync(dto)    │  │ +GetAllAsync()       │  │ +CreateAsync(dto)│ │
+│  │ +UpdateAsync(id,dto) │  │ +GetByIdAsync(id)    │  │ +DeleteAsync(id) │ │
+│  │ +DeleteAsync(id)     │  │ +CreateAsync(dto)    │  └──────────────────┘ │
+│  └──────────────────────┘  │ +UpdateStatusAsync() │                        │
+│                             │ +DeductSeatAsync()   │                        │
+│                             │ +ReleaseSeatAsync()  │                        │
+│                             └──────────────────────┘                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 1.3 BookingService Class Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        BOOKING SERVICE                                      │
+│                                                                             │
+│  DOMAIN                                                                     │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                           Booking                                    │  │
+│  ├──────────────────────────────────────────────────────────────────────┤  │
+│  │ +Id: int                    +PassengerId: int                        │  │
+│  │ +PassengerName: string      +PassengerEmail: string                  │  │
+│  │ +ScheduleId: int            +FlightNumber: string                    │  │
+│  │ +Origin: string             +Destination: string                     │  │
+│  │ +DepartureTime: DateTime    +Class: string (Economy/Business)        │  │
+│  │ +SeatNumber: string         +TotalAmount: decimal                    │  │
+│  │ +Status: string             +PNR: string (6-char GUID prefix)        │  │
+│  │ +CreatedAt: DateTime        +Payment: Payment? (nav, ignored by EF)  │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  APPLICATION                                                                │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  «interface» IBookingService                                         │  │
+│  ├──────────────────────────────────────────────────────────────────────┤  │
+│  │ +CreateBookingAsync(dto, passengerId, name, email): BookingResponseDto│  │
+│  │ +GetMyBookingsAsync(passengerId): List<BookingResponseDto>           │  │
+│  │ +GetBookingByIdAsync(bookingId, passengerId): BookingResponseDto     │  │
+│  │ +CancelBookingAsync(bookingId, passengerId): BookingResponseDto      │  │
+│  │ +GetAllBookingsAsync(): List<BookingResponseDto>                     │  │
+│  │ +UpdateBookingStatusAsync(id, status, scheduleId, class): Task       │  │
+│  │ +GetOccupiedSeatsAsync(scheduleId): List<string>                     │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  INFRASTRUCTURE                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  BookingServiceImpl                                                  │  │
+│  ├──────────────────────────────────────────────────────────────────────┤  │
+│  │ -_db: BookingDbContext                                               │  │
+│  │ -_flightClient: IFlightServiceClient                                 │  │
+│  │ -_publisher: RabbitMQPublisher                                       │  │
+│  │ -_authServiceUrl: string                                             │  │
+│  │ -GenerateSeatNumber(class): string                                   │  │
+│  │ -MapToResponse(booking): BookingResponseDto                          │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  BookingCleanupService (BackgroundService)                           │  │
+│  ├──────────────────────────────────────────────────────────────────────┤  │
+│  │ RunInterval: 5 minutes                                               │  │
+│  │ PendingExpiry: 15 minutes                                            │  │
+│  │ -CleanupExpiredBookingsAsync(): auto-cancels stale Pending bookings  │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  «interface» IFlightServiceClient                                    │  │
+│  ├──────────────────────────────────────────────────────────────────────┤  │
+│  │ +GetScheduleAsync(scheduleId): Task<ScheduleInfoDto?>                │  │
+│  │ +DeductSeatAsync(scheduleId, seatClass): Task<bool>                  │  │
+│  │ +ReleaseSeatAsync(scheduleId, seatClass): Task<bool>                 │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 1.4 PaymentService Class Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        PAYMENT SERVICE                                      │
+│                                                                             │
+│  DOMAIN                                                                     │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │                           Payment                                    │  │
+│  ├──────────────────────────────────────────────────────────────────────┤  │
+│  │ +Id: int              +BookingId: int        +PassengerId: int       │  │
+│  │ +PassengerEmail: str  +PassengerName: str    +Amount: decimal        │  │
+│  │ +Method: string       +Status: string        +FlightNumber: string   │  │
+│  │ +Origin: string       +Destination: string   +SeatNumber: string     │  │
+│  │ +Class: string        +ScheduleId: int       +CreatedAt: DateTime    │  │
+│  │ +PaidAt: DateTime?    +FailureReason: string?                        │  │
+│  │                                                                      │  │
+│  │  Status values: Processing → Success | Failed | Refunded             │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  INFRASTRUCTURE                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  RazorpayService                                                     │  │
+│  ├──────────────────────────────────────────────────────────────────────┤  │
+│  │ -_keyId: string                                                      │  │
+│  │ -_keySecret: string                                                  │  │
+│  │ +CreateOrder(amount, currency): string (orderId)                     │  │
+│  │   → POST https://api.razorpay.com/v1/orders                         │  │
+│  │   → amount in paise (amount * 100)                                   │  │
+│  │ +VerifyPayment(orderId, paymentId, signature): bool                  │  │
+│  │   → HMAC-SHA256("{orderId}|{paymentId}", keySecret)                  │  │
+│  │   → compare computed hash with received signature                    │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 1.5 Shared Events Class Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         SHARED.EVENTS                                       │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  BookingCreatedEvent          BookingConfirmedEvent                  │  │
+│  │  ─────────────────────        ────────────────────────               │  │
+│  │  BookingId, PassengerId       BookingId, PNR                         │  │
+│  │  PassengerName/Email          PassengerName/Email                    │  │
+│  │  FlightNumber, Origin         FlightNumber, Origin                   │  │
+│  │  Destination, DepartureTime   Destination, DepartureTime             │  │
+│  │  Class, SeatNumber            SeatNumber, Amount, Class              │  │
+│  │  Amount, PaymentMethod                                               │  │
+│  │  ScheduleId                                                          │  │
+│  │                                                                      │  │
+│  │  BookingCancelledEvent        PaymentCompletedEvent                  │  │
+│  │  ──────────────────────       ──────────────────────                 │  │
+│  │  BookingId                    BookingId, PassengerId                 │  │
+│  │  PassengerEmail/Name          PassengerName/Email                    │  │
+│  │  FlightNumber                 FlightNumber, Origin                   │  │
+│  │  RefundAmount                 Destination, DepartureTime             │  │
+│  │                               SeatNumber, Amount                     │  │
+│  │  FlightStatusChangedEvent     ScheduleId, Class                      │  │
+│  │  ─────────────────────────                                           │  │
+│  │  ScheduleId, FlightNumber     PaymentFailedEvent                     │  │
+│  │  Origin, Destination          ──────────────────                     │  │
+│  │  DepartureTime                BookingId                              │  │
+│  │  OldStatus, NewStatus         PassengerEmail/Name                    │  │
+│  │                               FlightNumber, Reason                   │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  EXCEPTION HIERARCHY                                                 │  │
+│  │                                                                      │  │
+│  │  Exception                                                           │  │
+│  │    ├── ValidationException                                           │  │
+│  │    │     +Errors: IReadOnlyDictionary<string, string[]>              │  │
+│  │    │     → HTTP 400 via ValidationExceptionHandler                   │  │
+│  │    └── NotFoundException                                             │  │
+│  │          +NotFoundException(resource, key)                           │  │
+│  │          → HTTP 404 via GlobalExceptionHandler                       │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 2. Sequence Diagrams
+
+### 2.1 User Registration Sequence
+
+```
+Client          Gateway         AuthService         DB (AUTH)       EmailService
+  │                │                 │                  │                │
+  │ POST /auth/api/auth/register     │                  │                │
+  │────────────────►│                │                  │                │
+  │                 │ (no JWT needed)│                  │                │
+  │                 │────────────────►                  │                │
+  │                 │                │ AnyAsync(email)  │                │
+  │                 │                │─────────────────►│                │
+  │                 │                │◄── exists? ──────│                │
+  │                 │                │                  │                │
+  │                 │                │ [if exists] throw "Email already registered"
+  │                 │                │                  │                │
+  │                 │                │ BCrypt.Hash(pwd) │                │
+  │                 │                │ Add User to DB   │                │
+  │                 │                │─────────────────►│                │
+  │                 │                │◄── saved ────────│                │
+  │                 │                │                  │                │
+  │                 │                │ GenerateAccessToken(user)         │
+  │◄────────────────│◄── { accessToken } ───────────────│                │
+```
+
+### 2.2 User Login Sequence
+
+```
+Client          Gateway         AuthService         DB (AUTH)
+  │                │                 │                  │
+  │ POST /auth/api/auth/login        │                  │
+  │────────────────►│                │                  │
+  │                 │────────────────►                  │
+  │                 │                │ FindUser(email)  │
+  │                 │                │─────────────────►│
+  │                 │                │◄── User ─────────│
+  │                 │                │                  │
+  │                 │                │ BCrypt.Verify(pwd, hash)
+  │                 │                │ [if invalid] throw 401
+  │                 │                │                  │
+  │                 │                │ GenerateAccessToken (JWT, 15min)
+  │                 │                │ GenerateRefreshToken (opaque, 7d)
+  │                 │                │ Add RefreshToken to DB
+  │                 │                │─────────────────►│
+  │                 │                │◄── saved ────────│
+  │                 │                │                  │
+  │◄── Set-Cookie: refreshToken (HttpOnly, 7d) ─────────│
+  │◄── { accessToken, role, fullName, email } ──────────│
+```
+
+### 2.3 Token Refresh Sequence
+
+```
+Client          Gateway         AuthService         DB (AUTH)
+  │                │                 │                  │
+  │ POST /auth/api/auth/refresh      │                  │
+  │ (cookie sent automatically)      │                  │
+  │────────────────►│                │                  │
+  │                 │────────────────►                  │
+  │                 │                │ Find RefreshToken│
+  │                 │                │─────────────────►│
+  │                 │                │◄── token record ─│
+  │                 │                │                  │
+  │                 │                │ [if null/revoked/expired] → 401
+  │                 │                │                  │
+  │                 │                │ Mark old token IsRevoked=true
+  │                 │                │ Generate new AccessToken + RefreshToken
+  │                 │                │ Save new RefreshToken
+  │                 │                │─────────────────►│
+  │◄── Set-Cookie: new refreshToken (HttpOnly) ─────────│
+  │◄── { accessToken, role, fullName, email } ──────────│
+```
+
+### 2.4 Flight Search Sequence
+
+```
+Passenger       Gateway         FlightService       DB (FLIGHT)
+  │                │                 │                  │
+  │ GET /flights/api/schedule/search?origin=DEL&dest=DXB&date=...
+  │────────────────►│                │                  │
+  │                 │ (no JWT needed)│                  │
+  │                 │────────────────►                  │
+  │                 │                │ SearchAsync(dto) │
+  │                 │                │─────────────────►│
+  │                 │                │  WHERE origin=DEL│
+  │                 │                │  AND dest=DXB    │
+  │                 │                │  AND date=...    │
+  │                 │                │  AND status=Scheduled
+  │                 │                │  AND seats > 0   │
+  │                 │                │◄── List<Schedule>│
+  │◄────────────────│◄── schedules ──│                  │
+```
+
+### 2.5 Create Booking Sequence (Full SAGA)
+
+```
+Passenger  Gateway  BookingService  FlightService  PaymentService  RabbitMQ
+  │           │           │               │               │            │
+  │ POST /bookings/api/booking            │               │            │
+  │───────────►│           │               │               │            │
+  │            │ JWT valid │               │               │            │
+  │            │ X-User-Id/Name/Email injected             │            │
+  │            │───────────►               │               │            │
+  │            │           │ GetScheduleAsync(scheduleId)  │            │
+  │            │           │───────────────►               │            │
+  │            │           │◄── ScheduleInfoDto ───────────│            │
+  │            │           │               │               │            │
+  │            │           │ Check seat availability       │            │
+  │            │           │ Generate PNR (6-char GUID)    │            │
+  │            │           │ Calculate seat prices         │            │
+  │            │           │ (window seats +15%)           │            │
+  │            │           │ Create Booking records        │            │
+  │            │           │ Status = "Pending"            │            │
+  │            │           │ SaveChangesAsync()            │            │
+  │            │           │               │               │            │
+  │            │           │ PublishAsync("booking-created", event)     │
+  │            │           │───────────────────────────────────────────►│
+  │            │           │               │               │            │
+  │◄───────────│◄── BookingResponseDto ────│               │            │
+  │            │           │               │               │            │
+  │            │           │               │ PaymentEventConsumer       │
+  │            │           │               │◄──────────────────────────│
+  │            │           │               │ Create Payment record      │
+  │            │           │               │ Status = "Processing"      │
+```
+
+### 2.6 Razorpay Payment Sequence
+
+```
+Passenger  Gateway  PaymentService  Razorpay API  BookingService  AuthService  RabbitMQ
+  │           │           │               │               │            │           │
+  │ POST /payments/api/payment/create-order               │            │           │
+  │───────────►│           │               │               │            │           │
+  │            │───────────►               │               │            │           │
+  │            │           │ CreateOrder(amount)           │            │           │
+  │            │           │───────────────►               │            │           │
+  │            │           │◄── { id: orderId } ───────────│            │           │
+  │◄───────────│◄── { orderId, keyId, amount, currency }   │            │           │
+  │            │           │               │               │            │           │
+  │ [Razorpay checkout modal opens in browser]             │            │           │
+  │───────────────────────────────────────►│               │            │           │
+  │◄─── { razorpay_payment_id, razorpay_signature } ───────│            │           │
+  │            │           │               │               │            │           │
+  │ POST /payments/api/payment/verify      │               │            │           │
+  │───────────►│           │               │               │            │           │
+  │            │───────────►               │               │            │           │
+  │            │           │ VerifyPayment(orderId, paymentId, sig)     │           │
+  │            │           │ HMAC-SHA256("{orderId}|{paymentId}")       │           │
+  │            │           │ [if invalid] → 400 Bad Request             │           │
+  │            │           │               │               │            │           │
+  │            │           │ Find Payment by BookingId (retry 10x/500ms)│           │
+  │            │           │ Update Status = "Success"     │            │           │
+  │            │           │ PaidAt = UtcNow               │            │           │
+  │            │           │               │               │            │           │
+  │            │           │ HTTP POST /api/booking/{id}/confirm        │           │
+  │            │           │───────────────────────────────►            │           │
+  │            │           │               │ Status = "Confirmed"       │           │
+  │            │           │               │ DeductSeat per passenger   │           │
+  │            │           │               │◄───────────────────────────│           │
+  │            │           │               │               │            │           │
+  │            │           │ HTTP POST /api/auth/rewards/earn           │           │
+  │            │           │───────────────────────────────────────────►│           │
+  │            │           │               │               │            │           │
+  │            │           │ PublishAsync("payment-completed", event)   │           │
+  │            │           │───────────────────────────────────────────────────────►│
+  │◄───────────│◄── { message: "Payment verified" } ───────│            │           │
+```
+
+### 2.7 Booking Confirmation via RabbitMQ Sequence
+
+```
+RabbitMQ  BookingEventConsumer  BookingService  DB(BOOKING)  RabbitMQ  NotifService
+  │               │                   │               │           │          │
+  │ payment-completed event           │               │           │          │
+  │───────────────►                   │               │           │          │
+  │               │ UpdateBookingStatusAsync(Confirmed)           │          │
+  │               │───────────────────►               │           │          │
+  │               │                   │ Find by PNR   │           │          │
+  │               │                   │ (group booking│           │          │
+  │               │                   │  support)     │           │          │
+  │               │                   │──────────────►│           │          │
+  │               │                   │ Status=Confirmed          │          │
+  │               │                   │ DeductSeat per passenger  │          │
+  │               │                   │◄──────────────│           │          │
+  │               │                   │               │           │          │
+  │               │ Find PNR from DB  │               │           │          │
+  │               │───────────────────►               │           │          │
+  │               │◄── booking.PNR ───│               │           │          │
+  │               │                   │               │           │          │
+  │               │ PublishAsync("booking-confirmed", event)      │          │
+  │               │──────────────────────────────────────────────►│          │
+  │               │                   │               │           │          │
+  │               │                   │               │           │ booking-confirmed
+  │               │                   │               │           │──────────►│
+  │               │                   │               │           │          │ SendBookingConfirmedAsync
+  │               │                   │               │           │          │ (email + PDF boarding pass)
+```
+
+### 2.8 Booking Cancellation Sequence
+
+```
+Passenger  Gateway  BookingService  FlightService  AuthService  RabbitMQ  NotifService
+  │           │           │               │               │          │          │
+  │ POST /bookings/api/booking/{id}/cancel│               │          │          │
+  │───────────►│           │               │               │          │          │
+  │            │ JWT valid │               │               │          │          │
+  │            │───────────►               │               │          │          │
+  │            │           │ Find booking  │               │          │          │
+  │            │           │ [if not Confirmed] → 400      │          │          │
+  │            │           │               │               │          │          │
+  │            │           │ Status = "Cancelled"          │          │          │
+  │            │           │ HTTP PATCH /release-seat      │          │          │
+  │            │           │───────────────►               │          │          │
+  │            │           │◄── 200 OK ────│               │          │          │
+  │            │           │               │               │          │          │
+  │            │           │ HTTP POST /rewards/refund     │          │          │
+  │            │           │───────────────────────────────►          │          │
+  │            │           │               │               │          │          │
+  │            │           │ PublishAsync("booking-cancelled")        │          │
+  │            │           │──────────────────────────────────────────►          │
+  │◄───────────│◄── BookingResponseDto ────│               │          │          │
+  │            │           │               │               │          │          │
+  │            │           │               │               │          │ booking-cancelled
+  │            │           │               │               │          │──────────►│
+  │            │           │               │               │          │          │ SendBookingCancelledAsync
+```
+
+### 2.9 Flight Status Change & Alert Sequence
+
+```
+Admin   Gateway  FlightService  DB(FLIGHT)  RabbitMQ  NotifService  DB(NOTIF)  Subscribers
+  │        │           │              │          │           │             │          │
+  │ PATCH /flights/api/schedule/{id}/status      │           │             │          │
+  │────────►│           │              │          │           │             │          │
+  │         │ JWT valid │              │          │           │             │          │
+  │         │───────────►              │          │           │             │          │
+  │         │           │ Find Schedule│          │           │             │          │
+  │         │           │─────────────►│          │           │             │          │
+  │         │           │ oldStatus = schedule.Status         │             │          │
+  │         │           │ schedule.Status = newStatus         │             │          │
+  │         │           │ SaveChanges  │          │           │             │          │
+  │         │           │─────────────►│          │           │             │          │
+  │         │           │              │          │           │             │          │
+  │         │           │ PublishAsync("flight-status-changed")│             │          │
+  │         │           │──────────────────────────►          │             │          │
+  │◄────────│◄── 200 OK─│              │          │           │             │          │
+  │         │           │              │          │           │             │          │
+  │         │           │              │          │ flight-status-changed   │          │
+  │         │           │              │          │───────────►             │          │
+  │         │           │              │          │           │ Query FlightAlerts     │
+  │         │           │              │          │           │ WHERE scheduleId=X     │
+  │         │           │              │          │           │ AND isActive=true      │
+  │         │           │              │          │           │─────────────►│          │
+  │         │           │              │          │           │◄── subscribers│          │
+  │         │           │              │          │           │             │          │
+  │         │           │              │          │           │ foreach subscriber:    │
+  │         │           │              │          │           │ SendFlightAlertAsync() │
+  │         │           │              │          │           │──────────────────────────►│
+```
+
+### 2.10 Password Reset Sequence
+
+```
+Client          Gateway         AuthService         DB (AUTH)       EmailService
+  │                │                 │                  │                │
+  │ POST /auth/api/auth/forgot-password               │                │
+  │────────────────►│                │                  │                │
+  │                 │────────────────►                  │                │
+  │                 │                │ Find user by email               │
+  │                 │                │─────────────────►│                │
+  │                 │                │ [if not found] return 200 (silent)│
+  │                 │                │                  │                │
+  │                 │                │ Invalidate old tokens            │
+  │                 │                │ Generate rawToken (48 random bytes, URL-safe base64)
+  │                 │                │ BCrypt.Hash(rawToken) → store in DB
+  │                 │                │─────────────────►│                │
+  │                 │                │                  │                │
+  │                 │                │ Build resetLink: /reset-password?userId=X&token=rawToken
+  │                 │                │ SendPasswordResetEmailAsync()    │
+  │                 │                │──────────────────────────────────►│
+  │◄────────────────│◄── 200 OK ─────│                  │                │
+  │                 │                │                  │                │
+  │ [User clicks link in email]      │                  │                │
+  │                 │                │                  │                │
+  │ POST /auth/api/auth/reset-password { userId, token, newPassword }
+  │────────────────►│                │                  │                │
+  │                 │────────────────►                  │                │
+  │                 │                │ Find non-expired, unused tokens for userId
+  │                 │                │─────────────────►│                │
+  │                 │                │ BCrypt.Verify(rawToken, storedHash)
+  │                 │                │ [if no match] → 400              │
+  │                 │                │                  │                │
+  │                 │                │ BCrypt.Hash(newPassword)         │
+  │                 │                │ token.IsUsed = true              │
+  │                 │                │─────────────────►│                │
+  │◄────────────────│◄── 200 OK ─────│                  │                │
+```
+
+---
+
+## 3. State Diagrams
+
+### 3.1 Booking Status State Diagram
+
+```
+                         ┌─────────────────────────────────────────────────┐
+                         │           BOOKING STATUS STATES                 │
+                         └─────────────────────────────────────────────────┘
+
+                                    [Passenger submits booking]
+                                              │
+                                              ▼
+                                    ┌─────────────────┐
+                                    │    «initial»    │
+                                    │     Pending     │
+                                    └────────┬────────┘
+                                             │
+                    ┌────────────────────────┼────────────────────────┐
+                    │                        │                        │
+                    │ [Payment verified      │ [15 min timeout —      │
+                    │  via Razorpay]         │  no payment received]  │
+                    │                        │                        │
+                    ▼                        │                        ▼
+          ┌──────────────────┐              │             ┌──────────────────┐
+          │   Confirmed      │              │             │   Cancelled      │
+          │                  │              │             │  (auto by        │
+          │ • Seat deducted  │              │             │   CleanupSvc)    │
+          │ • Email sent     │              │             └──────────────────┘
+          │ • Points earned  │              │                      ▲
+          └────────┬─────────┘              │                      │
+                   │                        ▼                      │
+                   │             ┌──────────────────┐              │
+                   │             │   Cancelled      │◄─────────────┘
+                   │             │  (by passenger)  │
+                   │             │                  │  [Passenger cancels
+                   │             │ • Seat released  │   confirmed booking]
+                   │             │ • 90% refund     │
+                   │             │ • Points refunded│
+                   │             │ • Email sent     │
+                   └────────────►└──────────────────┘
+
+  Transition Rules:
+  ─────────────────
+  Pending    → Confirmed  : PaymentService verifies Razorpay signature
+  Pending    → Cancelled  : BookingCleanupService (>15 min, no payment)
+  Confirmed  → Cancelled  : Passenger explicitly cancels (only Confirmed allowed)
+  Cancelled  → *          : Terminal state — no further transitions
+```
+
+### 3.2 Payment Status State Diagram
+
+```
+                         ┌─────────────────────────────────────────────────┐
+                         │           PAYMENT STATUS STATES                 │
+                         └─────────────────────────────────────────────────┘
+
+                    [BookingCreatedEvent received by PaymentEventConsumer]
+                                              │
+                                              ▼
+                                    ┌─────────────────┐
+                                    │   Processing    │
+                                    │                 │
+                                    │ • Record created│
+                                    │ • Awaiting      │
+                                    │   Razorpay      │
+                                    └────────┬────────┘
+                                             │
+                    ┌────────────────────────┼────────────────────────┐
+                    │                        │                        │
+                    │ [HMAC signature        │ [Signature             │
+                    │  verified OK]          │  mismatch]             │
+                    ▼                        │                        ▼
+          ┌──────────────────┐              │             ┌──────────────────┐
+          │    Success       │              │             │     Failed       │
+          │                  │              │             │                  │
+          │ • PaidAt set     │              │             │ • FailureReason  │
+          │ • Booking        │              │             │   recorded       │
+          │   confirmed      │              │             └──────────────────┘
+          │ • Points earned  │              │
+          └────────┬─────────┘              ▼
+                   │             ┌──────────────────┐
+                   │             │   (no record)    │
+                   │             │  Payment never   │
+                   │             │  created if      │
+                   │             │  booking expired │
+                   │             └──────────────────┘
+                   │
+                   │ [Booking cancelled by passenger]
+                   ▼
+          ┌──────────────────┐
+          │    Refunded      │
+          │                  │
+          │ • 90% of amount  │
+          │   returned       │
+          └──────────────────┘
+```
+
+### 3.3 Flight Schedule Status State Diagram
+
+```
+                         ┌─────────────────────────────────────────────────┐
+                         │         FLIGHT SCHEDULE STATUS STATES           │
+                         └─────────────────────────────────────────────────┘
+
+                              [Admin creates schedule]
+                                        │
+                                        ▼
+                              ┌──────────────────┐
+                              │    Scheduled     │◄──────────────────┐
+                              │                  │                   │
+                              │ • Seats available│  [Delay resolved] │
+                              │ • Bookable       │                   │
+                              └────────┬─────────┘                   │
+                                       │                             │
+                    ┌──────────────────┼──────────────────┐          │
+                    │                  │                  │          │
+                    │ [Admin marks     │ [Admin marks     │          │
+                    │  Delayed]        │  Cancelled]      │          │
+                    ▼                  ▼                  │          │
+          ┌──────────────────┐  ┌──────────────────┐     │          │
+          │    Delayed       │  │    Cancelled     │     │          │
+          │                  │  │                  │     │          │
+          │ • Alert emails   │  │ • Alert emails   │     │          │
+          │   sent to        │  │   sent to        │     │          │
+          │   subscribers    │  │   subscribers    │     │          │
+          └────────┬─────────┘  └──────────────────┘     │          │
+                   │                                      │          │
+                   │ [Admin marks Scheduled]              │          │
+                   └──────────────────────────────────────┘──────────┘
+
+  Note: Every status transition publishes FlightStatusChangedEvent to RabbitMQ
+        NotificationService fans out emails to all active FlightAlert subscribers
+```
+
+### 3.4 Refresh Token State Diagram
+
+```
+                         ┌─────────────────────────────────────────────────┐
+                         │          REFRESH TOKEN STATES                   │
+                         └─────────────────────────────────────────────────┘
+
+                              [User logs in]
+                                    │
+                                    ▼
+                          ┌──────────────────┐
+                          │     Active       │
+                          │                  │
+                          │ IsRevoked=false  │
+                          │ ExpiryDate=+7d   │
+                          └────────┬─────────┘
+                                   │
+              ┌────────────────────┼────────────────────┐
+              │                    │                    │
+              │ [POST /refresh]    │ [7 days pass]      │ [POST /logout]
+              ▼                    ▼                    ▼
+    ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+    │    Rotated       │  │     Expired      │  │    Revoked       │
+    │                  │  │                  │  │                  │
+    │ IsRevoked=true   │  │ ExpiryDate < Now │  │ IsRevoked=true   │
+    │ New token issued │  │ → 401 on use     │  │ Cookie cleared   │
+    └──────────────────┘  └──────────────────┘  └──────────────────┘
+    All three are terminal — cannot be reactivated
+```
+
+### 3.5 Reward Points State Diagram
+
+```
+                         ┌─────────────────────────────────────────────────┐
+                         │          REWARD POINTS LIFECYCLE                │
+                         └─────────────────────────────────────────────────┘
+
+  User.RewardPoints = 0 (on registration)
+           │
+           │ [Payment verified — 1 pt per ₹10]
+           ▼
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │  Balance increases                                                   │
+  │  RewardPointsLog: Type="Earned", Points=+N                          │
+  │  Description: "Earned N pts for booking payment of ₹X"              │
+  └──────────────────────────────────────────────────────────────────────┘
+           │
+           │ [Passenger redeems on new booking]
+           ▼
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │  Balance decreases (max 60% of booking total)                       │
+  │  RewardPointsLog: Type="Redeemed", Points=-N                        │
+  │  1 point = ₹1 discount                                              │
+  └──────────────────────────────────────────────────────────────────────┘
+           │
+           │ [Booking cancelled]
+           ▼
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │  Balance restored (redeemed points refunded)                        │
+  │  RewardPointsLog: Type="Refunded", Points=+N                        │
+  │  Note: Earned points are NOT taken back on cancellation             │
+  └──────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 4. Activity Diagrams
+
+### 4.1 Create Booking Activity Diagram
+
+```
+  START
+    │
+    ▼
+  ┌─────────────────────────────────────────┐
+  │ Extract X-User-Id, X-User-Name,         │
+  │ X-User-Email from request headers       │
+  └──────────────────┬──────────────────────┘
+                     │
+                     ▼
+  ┌─────────────────────────────────────────┐
+  │ HTTP GET FlightService                  │
+  │ /api/schedule/{scheduleId}              │
+  └──────────────────┬──────────────────────┘
+                     │
+              ┌──────┴──────┐
+              │ schedule    │
+              │ found?      │
+              └──────┬──────┘
+           No │      │ Yes
+              ▼      ▼
+           throw  ┌─────────────────────────────────────────┐
+           404    │ Build passenger list                    │
+                  │ (from dto.Passengers or single user)    │
+                  └──────────────────┬──────────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────────┐
+                  │ Check seat availability                 │
+                  │ Economy: AvailableEconomySeats >= count │
+                  │ Business: AvailableBusinessSeats >= count│
+                  └──────────────────┬──────────────────────┘
+                                     │
+                              ┌──────┴──────┐
+                              │ enough      │
+                              │ seats?      │
+                              └──────┬──────┘
+                           No │      │ Yes
+                              ▼      ▼
+                           throw  ┌─────────────────────────────────────────┐
+                           400    │ GetOccupiedSeatsAsync(scheduleId)       │
+                                  │ (Confirmed + recent Pending < 15 min)   │
+                                  └──────────────────┬──────────────────────┘
+                                                     │
+                                                     ▼
+                                  ┌─────────────────────────────────────────┐
+                                  │ Generate PNR (6-char GUID prefix)       │
+                                  └──────────────────┬──────────────────────┘
+                                                     │
+                                                     ▼
+                                  ┌─────────────────────────────────────────┐
+                                  │ FOR EACH passenger:                     │
+                                  │  • Resolve seat number                  │
+                                  │  • Check seat not already occupied      │
+                                  │  • Apply window seat premium (+15%)     │
+                                  │  • Create Booking entity (Status=Pending)│
+                                  │  • Add to occupiedSeats (prevent dupe)  │
+                                  └──────────────────┬──────────────────────┘
+                                                     │
+                                                     ▼
+                                  ┌─────────────────────────────────────────┐
+                                  │ db.SaveChangesAsync()                   │
+                                  └──────────────────┬──────────────────────┘
+                                                     │
+                                                     ▼
+                                  ┌─────────────────────────────────────────┐
+                                  │ PublishAsync("booking-created",         │
+                                  │   BookingCreatedEvent)                  │
+                                  │ Amount = total for ALL passengers       │
+                                  └──────────────────┬──────────────────────┘
+                                                     │
+                                                     ▼
+                                  ┌─────────────────────────────────────────┐
+                                  │ Return BookingResponseDto               │
+                                  │ (TotalAmount = massAmount)              │
+                                  └──────────────────┬──────────────────────┘
+                                                     │
+                                                    END
+```
+
+### 4.2 Payment Verification Activity Diagram
+
+```
+  START
+    │
+    ▼
+  ┌─────────────────────────────────────────┐
+  │ Receive VerifyPaymentDto                │
+  │ { orderId, paymentId, signature,        │
+  │   bookingId }                           │
+  └──────────────────┬──────────────────────┘
+                     │
+                     ▼
+  ┌─────────────────────────────────────────┐
+  │ HMAC-SHA256 verification                │
+  │ payload = "{orderId}|{paymentId}"       │
+  │ computed = HMAC(keySecret, payload)     │
+  │ compare computed == signature           │
+  └──────────────────┬──────────────────────┘
+                     │
+              ┌──────┴──────┐
+              │ signature   │
+              │ valid?      │
+              └──────┬──────┘
+           No │      │ Yes
+              ▼      ▼
+           return ┌─────────────────────────────────────────┐
+           400    │ Retry loop (10x, 500ms delay)           │
+                  │ Find Payment WHERE BookingId = bookingId │
+                  └──────────────────┬──────────────────────┘
+                                     │
+                              ┌──────┴──────┐
+                              │ payment     │
+                              │ found?      │
+                              └──────┬──────┘
+                           No │      │ Yes
+                              ▼      ▼
+                           return ┌─────────────────────────────────────────┐
+                           200    │ payment.Status = "Success"              │
+                                  │ payment.PaidAt = UtcNow                 │
+                                  │ db.SaveChangesAsync()                   │
+                                  └──────────────────┬──────────────────────┘
+                                                     │
+                                                     ▼
+                                  ┌─────────────────────────────────────────┐
+                                  │ HTTP POST BookingService                │
+                                  │ /api/booking/{id}/confirm               │
+                                  │ (fire-and-forget, errors logged)        │
+                                  └──────────────────┬──────────────────────┘
+                                                     │
+                                                     ▼
+                                  ┌─────────────────────────────────────────┐
+                                  │ HTTP POST AuthService                   │
+                                  │ /api/auth/rewards/earn                  │
+                                  │ { userId, amountPaid, referenceId }     │
+                                  │ (fire-and-forget, errors logged)        │
+                                  └──────────────────┬──────────────────────┘
+                                                     │
+                                                     ▼
+                                  ┌─────────────────────────────────────────┐
+                                  │ PublishAsync("payment-completed",       │
+                                  │   PaymentCompletedEvent)                │
+                                  │ (errors silently ignored)               │
+                                  └──────────────────┬──────────────────────┘
+                                                     │
+                                                     ▼
+                                  ┌─────────────────────────────────────────┐
+                                  │ return 200 { message, paymentId }       │
+                                  └──────────────────┬──────────────────────┘
+                                                     │
+                                                    END
+```
+
+### 4.3 Booking Cleanup Activity Diagram
+
+```
+  START (every 5 minutes)
+    │
+    ▼
+  ┌─────────────────────────────────────────┐
+  │ cutoff = UtcNow - 15 minutes            │
+  └──────────────────┬──────────────────────┘
+                     │
+                     ▼
+  ┌─────────────────────────────────────────┐
+  │ Query: SELECT bookings                  │
+  │ WHERE Status = "Pending"                │
+  │ AND CreatedAt < cutoff                  │
+  └──────────────────┬──────────────────────┘
+                     │
+              ┌──────┴──────┐
+              │ any stale   │
+              │ bookings?   │
+              └──────┬──────┘
+           No │      │ Yes
+              ▼      ▼
+            SLEEP ┌─────────────────────────────────────────┐
+            5min  │ foreach stale booking:                  │
+                  │   booking.Status = "Cancelled"          │
+                  └──────────────────┬──────────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────────┐
+                  │ db.SaveChangesAsync()                   │
+                  │ Log: "Cancelled N stale bookings"       │
+                  └──────────────────┬──────────────────────┘
+                                     │
+                                     ▼
+                                  SLEEP 5min
+                                     │
+                                    LOOP
+```
+
+### 4.4 Flight Alert Subscription Activity Diagram
+
+```
+  START
+    │
+    ▼
+  ┌─────────────────────────────────────────┐
+  │ Extract passengerId from X-User-Id      │
+  │ Extract email from X-User-Email         │
+  │ Extract name from X-User-Name           │
+  └──────────────────┬──────────────────────┘
+                     │
+                     ▼
+  ┌─────────────────────────────────────────┐
+  │ Query: Find existing active alert       │
+  │ WHERE PassengerId = X                   │
+  │ AND ScheduleId = dto.ScheduleId         │
+  │ AND IsActive = true                     │
+  └──────────────────┬──────────────────────┘
+                     │
+              ┌──────┴──────┐
+              │ already     │
+              │ subscribed? │
+              └──────┬──────┘
+           Yes │     │ No
+               ▼     ▼
+           return ┌─────────────────────────────────────────┐
+           400    │ Create FlightAlert entity               │
+                  │ { PassengerId, PassengerEmail,          │
+                  │   PassengerName, ScheduleId,            │
+                  │   FlightNumber, Origin, Destination,    │
+                  │   DepartureTime, IsActive=true }        │
+                  └──────────────────┬──────────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────────┐
+                  │ db.SaveChangesAsync()                   │
+                  └──────────────────┬──────────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────────┐
+                  │ return 200 { message: "Subscribed" }    │
+                  └──────────────────┬──────────────────────┘
+                                     │
+                                    END
+```
+
+### 4.5 Reward Points Redemption Activity Diagram
+
+```
+  START
+    │
+    ▼
+  ┌─────────────────────────────────────────┐
+  │ Validate: pointsToRedeem > 0            │
+  └──────────────────┬──────────────────────┘
+                     │
+                     ▼
+  ┌─────────────────────────────────────────┐
+  │ Load user from DB                       │
+  └──────────────────┬──────────────────────┘
+                     │
+              ┌──────┴──────┐
+              │ user.Reward │
+              │ Points >=   │
+              │ requested?  │
+              └──────┬──────┘
+           No │      │ Yes
+              ▼      ▼
+           throw  ┌─────────────────────────────────────────┐
+           400    │ maxDiscountAllowed = bookingTotal * 0.60 │
+                  │ requestedDiscount = pointsToRedeem * 1.0 │
+                  │ actualDiscount = Min(requested, maxAllowed)
+                  │ actualPoints = Floor(actualDiscount)     │
+                  └──────────────────┬──────────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────────┐
+                  │ user.RewardPoints -= actualPoints        │
+                  │ Add RewardPointsLog (Type="Redeemed")   │
+                  │ db.SaveChangesAsync()                   │
+                  └──────────────────┬──────────────────────┘
+                                     │
+                                     ▼
+                  ┌─────────────────────────────────────────┐
+                  │ return RedeemPointsResultDto            │
+                  │ { pointsUsed, discountAmount,           │
+                  │   remainingBalance }                    │
+                  └──────────────────┬──────────────────────┘
+                                     │
+                                    END
+```

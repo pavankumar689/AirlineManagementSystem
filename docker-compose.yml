@@ -1,0 +1,254 @@
+services:
+
+  # ─────────────────────────────────────────
+  #  INFRASTRUCTURE
+  # ─────────────────────────────────────────
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: veloskyra-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "Veloskyra@1234"
+      MSSQL_PID: "Express"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Veloskyra@1234", "-Q", "SELECT 1", "-C"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    networks:
+      - veloskyra-net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: veloskyra-rabbitmq
+    ports:
+      - "5672:5672"      # AMQP
+      - "15672:15672"    # Management UI  →  http://localhost:15672 (guest/guest)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+    networks:
+      - veloskyra-net
+
+  # ─────────────────────────────────────────
+  #  BACKEND MICROSERVICES
+  # ─────────────────────────────────────────
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: AuthService.API/Dockerfile
+    container_name: veloskyra-auth
+    ports:
+      - "5228:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=AIRLINE_AUTHENTICATION;User Id=sa;Password=Veloskyra@1234;TrustServerCertificate=True"
+      Jwt__Key: "AirlineAppSuperSecretKey123456789012"
+      Jwt__Issuer: "AirlineApp"
+      Jwt__Audience: "AirlineApp"
+      Email__SmtpHost: "smtp.gmail.com"
+      Email__SmtpPort: "587"
+      Email__SenderName: "Veloskyra Airlines"
+      Email__SenderEmail: "sportsstarfan@gmail.com"
+      Email__AppPassword: "lqpo onbk mtcv erwm"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - veloskyra-net
+
+  flight-service:
+    build:
+      context: .
+      dockerfile: FlightService.API/Dockerfile
+    container_name: veloskyra-flight
+    ports:
+      - "5090:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=AIRLINE_FLIGHT;User Id=sa;Password=Veloskyra@1234;TrustServerCertificate=True"
+      RabbitMQ__Host: "rabbitmq"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - veloskyra-net
+
+  booking-service:
+    build:
+      context: .
+      dockerfile: BookingService.API/Dockerfile
+    container_name: veloskyra-booking
+    ports:
+      - "5122:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=AIRLINE_BOOKING;User Id=sa;Password=Veloskyra@1234;TrustServerCertificate=True"
+      RabbitMQ__Host: "rabbitmq"
+      FlightServiceUrl: "http://flight-service:8080"
+      Services__AuthServiceUrl: "http://auth-service:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      flight-service:
+        condition: service_started
+    networks:
+      - veloskyra-net
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: PaymentService.API/Dockerfile
+    container_name: veloskyra-payment
+    ports:
+      - "5180:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=AIRLINE_PAYMENT;User Id=sa;Password=Veloskyra@1234;TrustServerCertificate=True"
+      RabbitMQ__Host: "rabbitmq"
+      Razorpay__KeyId: "rzp_test_SUDVzwAKVeUa91"
+      Razorpay__KeySecret: "SnKTNaIx0gVd3NuYh2INkK8e"
+      Services__BookingServiceUrl: "http://booking-service:8080"
+      Services__AuthServiceUrl: "http://auth-service:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - veloskyra-net
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: NotificationService.API/Dockerfile
+    container_name: veloskyra-notification
+    ports:
+      - "5137:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=AIRLINE_NOTIFICATION;User Id=sa;Password=Veloskyra@1234;TrustServerCertificate=True"
+      RabbitMQ__Host: "rabbitmq"
+      Email__SmtpHost: "smtp.gmail.com"
+      Email__SmtpPort: "587"
+      Email__SenderName: "Airline App"
+      Email__SenderEmail: "sportsstarfan@gmail.com"
+      Email__AppPassword: "lqpo onbk mtcv erwm"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - veloskyra-net
+
+  # ─────────────────────────────────────────
+  #  API GATEWAY
+  # ─────────────────────────────────────────
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ApiGateway/Dockerfile
+    container_name: veloskyra-gateway
+    ports:
+      - "5049:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Jwt__Key: "AirlineAppSuperSecretKey123456789012"
+      Jwt__Issuer: "AirlineApp"
+      Jwt__Audience: "AirlineApp"
+    depends_on:
+      - auth-service
+      - flight-service
+      - booking-service
+      - payment-service
+      - notification-service
+      - chatbot-service
+    networks:
+      - veloskyra-net
+
+  # ─────────────────────────────────────────
+  #  CHATBOT MICROSERVICE  (Python 🐍)
+  # ─────────────────────────────────────────
+
+  chatbot-service:
+    build:
+      context: ./ChatbotService.API
+      dockerfile: Dockerfile
+    container_name: veloskyra-chatbot
+    ports:
+      - "8100:8000"
+    environment:
+      GEMINI_API_KEY: "AIzaSyCsISj7JsQ5AAIcZHCCXBi4H7gt96tP83o"
+      FLIGHT_SERVICE_URL: "http://flight-service:8080"
+      BOOKING_SERVICE_URL: "http://booking-service:8080"
+      AUTH_SERVICE_URL: "http://auth-service:8080"
+    depends_on:
+      - flight-service
+      - booking-service
+      - auth-service
+    networks:
+      - veloskyra-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+  # ─────────────────────────────────────────
+  #  FRONTEND PORTALS
+  # ─────────────────────────────────────────
+
+  passenger-portal:
+    build:
+      context: ./PassengerPortal
+      dockerfile: Dockerfile
+    container_name: veloskyra-passenger-portal
+    ports:
+      - "4201:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - veloskyra-net
+
+  admin-portal:
+    build:
+      context: ./AdminPortal
+      dockerfile: Dockerfile
+    container_name: veloskyra-admin-portal
+    ports:
+      - "4200:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - veloskyra-net
+
+# ─────────────────────────────────────────
+#  VOLUMES & NETWORK
+# ─────────────────────────────────────────
+
+volumes:
+  sqlserver_data:
+  rabbitmq_data:
+
+networks:
+  veloskyra-net:
+    driver: bridge

@@ -1,0 +1,116 @@
+{
+  "Routes": [
+    {
+      "UpstreamPathTemplate": "/auth/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "auth-service", "Port": 8080 }
+      ]
+    },
+    {
+      "UpstreamPathTemplate": "/flights/{everything}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "flight-service", "Port": 8080 }
+      ]
+    },
+    {
+      "UpstreamPathTemplate": "/flights/{everything}",
+      "UpstreamHttpMethod": [ "POST", "PUT", "DELETE", "PATCH" ],
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "flight-service", "Port": 8080 }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "AddHeadersToRequest": {
+        "X-User-Id": "Claims[http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier] > value",
+        "X-User-Name": "Claims[http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name] > value",
+        "X-User-Email": "Claims[http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress] > value",
+        "X-User-Role": "Claims[http://schemas.microsoft.com/ws/2008/06/identity/claims/role] > value"
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/bookings/api/booking/occupied-seats/{everything}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/api/booking/occupied-seats/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "booking-service", "Port": 8080 }
+      ]
+    },
+    {
+      "UpstreamPathTemplate": "/bookings/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "booking-service", "Port": 8080 }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "AddHeadersToRequest": {
+        "X-User-Id": "Claims[http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier] > value",
+        "X-User-Name": "Claims[http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name] > value",
+        "X-User-Email": "Claims[http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress] > value",
+        "X-User-Role": "Claims[http://schemas.microsoft.com/ws/2008/06/identity/claims/role] > value"
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/payments/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST" ],
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "payment-service", "Port": 8080 }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "AddHeadersToRequest": {
+        "X-User-Id": "Claims[http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier] > value",
+        "X-User-Name": "Claims[http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name] > value",
+        "X-User-Email": "Claims[http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress] > value",
+        "X-User-Role": "Claims[http://schemas.microsoft.com/ws/2008/06/identity/claims/role] > value"
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/notifications/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "DELETE" ],
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "notification-service", "Port": 8080 }
+      ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer"
+      },
+      "AddHeadersToRequest": {
+        "X-User-Id": "Claims[http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier] > value",
+        "X-User-Name": "Claims[http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name] > value",
+        "X-User-Email": "Claims[http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress] > value",
+        "X-User-Role": "Claims[http://schemas.microsoft.com/ws/2008/06/identity/claims/role] > value"
+      }
+    }
+    ,
+    {
+      "UpstreamPathTemplate": "/chatbot/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "DELETE" ],
+      "DownstreamPathTemplate": "/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        { "Host": "chatbot-service", "Port": 8000 }
+      ]
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5049"
+  }
+}
