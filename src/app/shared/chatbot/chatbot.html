@@ -1,0 +1,126 @@
+<!-- ── Floating Toggle Button ────────────────────────────────────────── -->
+<button
+  id="chatbot-toggle-btn"
+  class="chatbot-fab"
+  (click)="toggleChat()"
+  [class.open]="isOpen"
+  [attr.aria-label]="isOpen ? 'Close chat' : 'Open chat assistant'"
+>
+  <span class="fab-badge" *ngIf="hasNewMessage && !isOpen">1</span>
+  <div class="fab-icon">
+    <svg *ngIf="!isOpen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+    <svg *ngIf="isOpen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </div>
+  <span class="fab-label" *ngIf="!isOpen">Ask Aria</span>
+</button>
+
+<!-- ── Chat Window ────────────────────────────────────────────────────── -->
+<div class="chatbot-window" [class.visible]="isOpen" role="dialog" aria-label="Veloskyra Chat Assistant">
+
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="header-info">
+      <div class="aria-avatar">
+        <span>✈</span>
+        <div class="online-dot"></div>
+      </div>
+      <div class="header-text">
+        <span class="bot-name">Aria</span>
+        <span class="bot-status">Veloskyra AI · Online</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" (click)="clearChat()" title="Clear chat">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-3.17"/>
+        </svg>
+      </button>
+      <button class="icon-btn" (click)="toggleChat()" title="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages-list" #messagesList id="chatbot-messages">
+
+    <!-- Suggested Questions (shown at start) -->
+    <div class="suggestions-wrapper" *ngIf="showSuggestions && messages.length <= 1">
+      <p class="suggestions-label">💡 Try asking:</p>
+      <div class="suggestions-grid">
+        <button
+          *ngFor="let q of suggestedQuestions"
+          class="suggestion-chip"
+          (click)="useSuggestion(q)"
+          id="suggestion-{{ q | slice:0:20 | lowercase }}"
+        >
+          {{ q }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Messages -->
+    <div
+      *ngFor="let msg of messages"
+      class="message-row"
+      [class.user-row]="msg.role === 'user'"
+      [class.bot-row]="msg.role === 'assistant'"
+    >
+      <!-- Bot Avatar -->
+      <div class="bot-icon" *ngIf="msg.role === 'assistant'">✈</div>
+
+      <div class="bubble" [class.user-bubble]="msg.role === 'user'" [class.bot-bubble]="msg.role === 'assistant'">
+
+        <!-- Loading Dots -->
+        <div *ngIf="msg.isLoading" class="typing-indicator">
+          <span></span><span></span><span></span>
+        </div>
+
+        <!-- Message Content -->
+        <div
+          *ngIf="!msg.isLoading"
+          class="msg-text"
+          [innerHTML]="renderContent(msg.content)"
+        ></div>
+
+        <span class="msg-time">{{ formatTime(msg.timestamp) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="chat-input-area">
+    <div class="input-row">
+      <textarea
+        id="chatbot-input"
+        class="chat-input"
+        [(ngModel)]="userInput"
+        (keydown)="onKeydown($event)"
+        placeholder="Ask me anything about your flight..."
+        rows="1"
+        [disabled]="isLoading"
+      ></textarea>
+      <button
+        id="chatbot-send-btn"
+        class="send-btn"
+        (click)="sendMessage()"
+        [disabled]="isLoading || !userInput.trim()"
+      >
+        <svg *ngIf="!isLoading" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+        </svg>
+        <div *ngIf="isLoading" class="send-spinner"></div>
+      </button>
+    </div>
+    <p class="input-footer">⚡ Powered by Gemini AI · Veloskyra</p>
+  </div>
+</div>

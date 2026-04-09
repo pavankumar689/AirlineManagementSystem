@@ -1,0 +1,173 @@
+<div class="boarding-pass-page">
+  <div class="container py-4">
+
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border text-primary"></div>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger">
+      <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+    </div>
+
+    <div *ngIf="!loading && booking">
+
+      <!-- Actions -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <a routerLink="/my-bookings" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+        <button class="btn btn-primary btn-sm" (click)="printPass()">
+          <i class="bi bi-printer me-1"></i>Print Boarding Pass
+        </button>
+      </div>
+
+      <!-- Not Confirmed Warning -->
+      <div *ngIf="booking.bookingStatus !== 'Confirmed'"
+        class="alert alert-warning text-center">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Boarding pass is only available for confirmed bookings.
+        Current status: <strong>{{ booking.bookingStatus }}</strong>
+      </div>
+
+      <!-- Boarding Pass Card -->
+      <div class="boarding-pass" *ngIf="booking.bookingStatus === 'Confirmed'">
+
+        <!-- Top Section -->
+        <div class="pass-top">
+          <div class="airline-header">
+            <div class="airline-brand">
+              <i class="bi bi-airplane-fill"></i>
+              <span>Veloskyra Airlines</span>
+            </div>
+            <div class="boarding-pass-label">BOARDING PASS</div>
+          </div>
+
+          <div class="pass-body">
+            <!-- Route -->
+            <div class="route-section">
+              <div class="city-block">
+                <div class="city-code">{{ booking.origin }}</div>
+                <div class="city-name">Origin</div>
+                <div class="time">
+                  {{ booking.departureTime | date:'HH:mm' }}
+                </div>
+              </div>
+
+              <div class="route-middle">
+                <div class="flight-path">
+                  <div class="dot"></div>
+                  <div class="dashed-line"></div>
+                  <i class="bi bi-airplane-fill plane"></i>
+                  <div class="dashed-line"></div>
+                  <div class="dot"></div>
+                </div>
+                <div class="flight-number">{{ booking.flightNumber }}</div>
+              </div>
+
+              <div class="city-block text-end">
+                <div class="city-code">{{ booking.destination }}</div>
+                <div class="city-name">Destination</div>
+                <div class="time">Arrival</div>
+              </div>
+            </div>
+
+            <!-- Passenger Info -->
+            <div class="passenger-section">
+              <div class="info-group">
+                <div class="info-label">Passenger Name</div>
+                <div class="info-value">{{ booking.passengerName }}</div>
+              </div>
+              <div class="info-group">
+                <div class="info-label">Date</div>
+                <div class="info-value">
+                  {{ booking.departureTime | date:'dd MMM yyyy' }}
+                </div>
+              </div>
+              <div class="info-group">
+                <div class="info-label">Class</div>
+                <div class="info-value">{{ booking.class }}</div>
+              </div>
+              <div class="info-group">
+                <div class="info-label">Seat</div>
+                <div class="info-value seat">{{ booking.seatNumber }}</div>
+              </div>
+              <div class="info-group">
+                <div class="info-label">Boarding Time</div>
+                <div class="info-value">{{ getBoardingTime() }}</div>
+              </div>
+              <div class="info-group">
+                <div class="info-label">Booking Ref</div>
+                <div class="info-value">#{{ booking.bookingId }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tear Line -->
+        <div class="tear-line">
+          <div class="circle left"></div>
+          <div class="dashes"></div>
+          <div class="circle right"></div>
+        </div>
+
+        <!-- Bottom Section (Stub) -->
+        <div class="pass-bottom">
+          <div class="stub-info">
+            <div class="stub-group">
+              <div class="info-label">Flight</div>
+              <div class="info-value">{{ booking.flightNumber }}</div>
+            </div>
+            <div class="stub-group">
+              <div class="info-label">Seat</div>
+              <div class="info-value seat">{{ booking.seatNumber }}</div>
+            </div>
+            <div class="stub-group">
+              <div class="info-label">Class</div>
+              <div class="info-value">{{ booking.class }}</div>
+            </div>
+            <div class="stub-group">
+              <div class="info-label">Gate</div>
+              <div class="info-value">A{{ booking.bookingId }}</div>
+            </div>
+          </div>
+
+          <!-- QR Code -->
+          <div class="qr-section">
+            <img [src]="qrDataUrl" alt="QR Code" *ngIf="qrDataUrl" />
+            <div class="scan-text">Scan at Gate</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Important Notes -->
+      <div class="card mt-4" *ngIf="booking.bookingStatus === 'Confirmed'">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3" style="color:#1a237e">
+            <i class="bi bi-info-circle me-2"></i>Important Information
+          </h6>
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2">
+              <i class="bi bi-check-circle text-success me-2"></i>
+              Please arrive at the airport at least 2 hours before departure
+            </li>
+            <li class="mb-2">
+              <i class="bi bi-check-circle text-success me-2"></i>
+              Boarding closes 30 minutes before departure
+            </li>
+            <li class="mb-2">
+              <i class="bi bi-check-circle text-success me-2"></i>
+              Carry a valid government ID proof
+            </li>
+            <li class="mb-2">
+              <i class="bi bi-check-circle text-success me-2"></i>
+              {{ booking.class === 'Business' ? '25kg' : '15kg' }}
+              free baggage allowed
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

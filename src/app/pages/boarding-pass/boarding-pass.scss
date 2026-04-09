@@ -1,0 +1,232 @@
+.boarding-pass-page {
+  min-height: calc(100vh - 60px);
+  background: #f0f2f5;
+}
+
+.boarding-pass {
+  max-width: 700px;
+  margin: 0 auto;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+}
+
+.pass-top {
+  background: linear-gradient(135deg, #1a237e 0%, #1565c0 100%);
+  color: white;
+  padding: 1.5rem;
+
+  .airline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+
+    .airline-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+
+      i { font-size: 1.5rem; color: #90caf9; }
+    }
+
+    .boarding-pass-label {
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      opacity: 0.7;
+      font-weight: 600;
+    }
+  }
+
+  .route-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+
+    .city-block {
+      flex: 1;
+
+      .city-code {
+        font-size: 2.5rem;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .city-name {
+        font-size: 0.75rem;
+        opacity: 0.7;
+        margin-top: 0.25rem;
+      }
+
+      .time {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+      }
+    }
+
+    .route-middle {
+      flex: 1;
+      text-align: center;
+
+      .flight-path {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        margin-bottom: 0.3rem;
+
+        .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.5);
+        }
+
+        .dashed-line {
+          flex: 1;
+          height: 1px;
+          border-top: 2px dashed rgba(255,255,255,0.4);
+        }
+
+        .plane {
+          font-size: 1.2rem;
+          color: #90caf9;
+        }
+      }
+
+      .flight-number {
+        font-size: 0.85rem;
+        opacity: 0.8;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .passenger-section {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 1rem;
+
+    .info-group {
+      .info-label {
+        font-size: 0.65rem;
+        opacity: 0.65;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.25rem;
+      }
+
+      .info-value {
+        font-size: 0.95rem;
+        font-weight: 700;
+
+        &.seat {
+          font-size: 1.3rem;
+          color: #90caf9;
+        }
+      }
+    }
+  }
+}
+
+.tear-line {
+  background: #f0f2f5;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  position: relative;
+
+  .circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #f0f2f5;
+    position: absolute;
+
+    &.left { left: -12px; }
+    &.right { right: -12px; }
+  }
+
+  .dashes {
+    flex: 1;
+    border-top: 2px dashed #dee2e6;
+    margin: 0 12px;
+  }
+}
+
+.pass-bottom {
+  background: white;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .stub-info {
+    display: flex;
+    gap: 2rem;
+
+    .stub-group {
+      .info-label {
+        font-size: 0.65rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.25rem;
+      }
+
+      .info-value {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1a237e;
+
+        &.seat {
+          font-size: 1.4rem;
+          color: #1565c0;
+        }
+      }
+    }
+  }
+
+  .qr-section {
+    text-align: center;
+
+    img {
+      width: 120px;
+      height: 120px;
+      border: 2px solid #e8eaf6;
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .scan-text {
+      font-size: 0.7rem;
+      color: #6c757d;
+      margin-top: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  }
+}
+
+@media print {
+  .boarding-pass-page {
+    background: white;
+  }
+
+  .btn, a.btn, .card:not(.boarding-pass) {
+    display: none !important;
+  }
+
+  .boarding-pass {
+    box-shadow: none;
+    border: 1px solid #dee2e6;
+  }
+}

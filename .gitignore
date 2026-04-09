@@ -1,18 +1,12 @@
-# Visual Studio
+# ===============================
+# Visual Studio / .NET
+# ===============================
 .vs/
 *.user
 *.userosscache
 *.sln.docstates
+*.suo
 
-# Visual Studio Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-*.code-workspace
-
-# .NET / C#
 bin/
 obj/
 [Dd]ebug/
@@ -23,51 +17,55 @@ obj/
 *.exe
 *.log
 
-# Node.js / Angular
+# ===============================
+# Angular / Node
+# ===============================
 node_modules/
 dist/
 dist-server/
 .angular/
+out-tsc/
 npm-debug.log
 yarn-error.log
 .eslintcache
 
+# ===============================
+# VS Code
+# ===============================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# ===============================
 # Python (ChatbotService)
+# ===============================
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-venv/
 .env
+venv/
 
-# MacOS
+# ===============================
+# Misc
+# ===============================
 .DS_Store
-
-# User-specific / temporary files
-*.suo
-*.bak
+Thumbs.db
 *.cache
 *.tmp
-*.log
 *.sqlite
 logs/
 
-# Docker build output
+# ===============================
+# Angular cache / misc
+# ===============================
+.angular/cache
+.sass-cache/
+coverage/
+
+# ===============================
+# Docker
+# ===============================
 .dockerignore

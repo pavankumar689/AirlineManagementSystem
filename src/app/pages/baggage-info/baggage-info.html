@@ -1,0 +1,153 @@
+<div class="baggage-page">
+
+  <!-- Header -->
+  <div class="baggage-header">
+    <div class="container text-center">
+      <h2 class="fw-bold text-white mb-2">
+        <i class="bi bi-luggage me-2"></i>Baggage Information
+      </h2>
+      <p class="text-white-50">
+        Everything you need to know about baggage allowances
+      </p>
+    </div>
+  </div>
+
+  <div class="container py-4">
+
+    <!-- Baggage Allowance Cards -->
+    <h4 class="fw-bold mb-3" style="color:#1a237e">
+      Baggage Allowance by Class
+    </h4>
+
+    <div class="row g-4 mb-5">
+      <div class="col-md-6" *ngFor="let c of classes">
+        <div class="card class-card h-100" [class.gold]="c.name === 'Business'">
+          <div class="card-header-custom" [class.gold]="c.name === 'Business'">
+            <div class="class-icon">
+              <i class="bi {{ c.icon }}"></i>
+            </div>
+            <h4 class="fw-bold mb-0">{{ c.name }} Class</h4>
+          </div>
+          <div class="card-body">
+
+            <!-- Allowance Summary -->
+            <div class="allowance-grid">
+              <div class="allowance-box">
+                <i class="bi bi-bag"></i>
+                <div>
+                  <small class="text-muted d-block">Cabin Baggage</small>
+                  <strong>{{ c.cabinBaggage }}</strong>
+                </div>
+              </div>
+              <div class="allowance-box">
+                <i class="bi bi-luggage"></i>
+                <div>
+                  <small class="text-muted d-block">Check-in Baggage</small>
+                  <strong>{{ c.checkInBaggage }}</strong>
+                </div>
+              </div>
+              <div class="allowance-box">
+                <i class="bi bi-plus-circle"></i>
+                <div>
+                  <small class="text-muted d-block">Extra Baggage</small>
+                  <strong>{{ c.extraBaggageRate }}</strong>
+                </div>
+              </div>
+              <div class="allowance-box">
+                <i class="bi bi-box-seam"></i>
+                <div>
+                  <small class="text-muted d-block">Oversize Fee</small>
+                  <strong>{{ c.oversizeRate }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Features -->
+            <ul class="feature-list mt-3">
+              <li *ngFor="let f of c.features">
+                <i class="bi bi-check-circle-fill text-success"></i>
+                {{ f }}
+              </li>
+            </ul>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Extra Baggage Calculator -->
+    <div class="card mb-5">
+      <div class="card-body">
+        <h5 class="fw-bold mb-4" style="color:#1a237e">
+          <i class="bi bi-calculator me-2"></i>Extra Baggage Cost Calculator
+        </h5>
+        <div class="row g-3 align-items-end">
+          <div class="col-md-4">
+            <label class="form-label">Travel Class</label>
+            <select class="form-select" [(ngModel)]="selectedClass"
+              (change)="calculateCost()">
+              <option value="Economy">Economy</option>
+              <option value="Business">Business</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Extra Weight (kg)</label>
+            <input type="number" class="form-control"
+              [(ngModel)]="extraWeight"
+              (input)="calculateCost()"
+              min="0" max="50" />
+          </div>
+          <div class="col-md-4">
+            <div class="cost-result">
+              <small class="text-muted d-block">Estimated Cost</small>
+              <h3 class="fw-bold mb-0" style="color:#1a237e">
+                ₹{{ calculatedCost }}
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prohibited Items -->
+    <h4 class="fw-bold mb-3" style="color:#1a237e">
+      <i class="bi bi-x-circle me-2 text-danger"></i>
+      Prohibited Items
+    </h4>
+
+    <div class="row g-3 mb-5">
+      <div class="col-md-4" *ngFor="let p of prohibited">
+        <div class="card prohibited-card h-100">
+          <div class="card-body d-flex gap-3 align-items-center">
+            <div class="prohibited-icon">
+              <i class="bi {{ p.icon }}"></i>
+            </div>
+            <div>
+              <h6 class="fw-bold mb-0">{{ p.item }}</h6>
+              <small class="text-muted">{{ p.desc }}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tips -->
+    <div class="card tips-card">
+      <div class="card-body">
+        <h5 class="fw-bold mb-3" style="color:#1a237e">
+          <i class="bi bi-lightbulb me-2 text-warning"></i>
+          Baggage Tips
+        </h5>
+        <div class="row g-2">
+          <div class="col-md-6" *ngFor="let tip of tips">
+            <div class="tip-item">
+              <i class="bi bi-check2 text-success me-2"></i>
+              {{ tip }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

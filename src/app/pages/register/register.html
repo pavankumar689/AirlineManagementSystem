@@ -1,0 +1,88 @@
+<div class="auth-wrapper">
+
+  <!-- Left Panel -->
+  <div class="auth-left">
+    <video autoplay loop muted playsinline class="auth-video">
+      <source src="video/Login_Register_Video.mp4" type="video/mp4">
+    </video>
+    <div class="auth-left-overlay"></div>
+    <div class="auth-left-content">
+      <div class="auth-brand">
+        <i class="bi bi-airplane-fill"></i>
+        <span class="bw">Velo</span><span class="bo">skyra</span>
+      </div>
+      <h2>Join Thousands<br/>of Smart Flyers</h2>
+      <p>Register today and unlock seamless flight booking across India and beyond.</p>
+      <div class="auth-features">
+        <div class="auth-feature"><i class="bi bi-check-circle-fill"></i> Free account, no hidden fees</div>
+        <div class="auth-feature"><i class="bi bi-check-circle-fill"></i> Group & multi-passenger bookings</div>
+        <div class="auth-feature"><i class="bi bi-check-circle-fill"></i> Live flight status alerts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="auth-right">
+    <div class="auth-form-wrapper">
+
+      <div class="auth-form-header">
+        <div class="auth-form-icon">
+          <i class="bi bi-person-plus-fill"></i>
+        </div>
+        <h3>Create Account</h3>
+        <p>Start your journey with Veloskyra today</p>
+      </div>
+
+      <div class="alert alert-danger rounded-3" *ngIf="error">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+      </div>
+      <div class="alert alert-success rounded-3" *ngIf="success">
+        <i class="bi bi-check-circle-fill me-2"></i>{{ success }}
+      </div>
+
+      <div class="auth-field">
+        <label>Full Name</label>
+        <div class="auth-input-group">
+          <i class="bi bi-person"></i>
+          <input type="text" placeholder="John Doe" [(ngModel)]="fullName" />
+        </div>
+      </div>
+
+      <div class="auth-field">
+        <label>Email address</label>
+        <div class="auth-input-group">
+          <i class="bi bi-envelope"></i>
+          <input type="email" placeholder="john@email.com" [(ngModel)]="email" />
+        </div>
+      </div>
+
+      <div class="auth-field">
+        <label>Password</label>
+        <div class="auth-input-group">
+          <i class="bi bi-lock"></i>
+          <input type="password" placeholder="••••••••" [(ngModel)]="password" />
+        </div>
+      </div>
+
+      <div class="auth-field">
+        <label>Confirm Password</label>
+        <div class="auth-input-group">
+          <i class="bi bi-lock-fill"></i>
+          <input type="password" placeholder="••••••••" [(ngModel)]="confirmPassword" (keyup.enter)="register()" />
+        </div>
+      </div>
+
+      <button class="auth-btn" (click)="register()" [disabled]="loading">
+        <span *ngIf="!loading"><i class="bi bi-person-check me-2"></i>Create Account</span>
+        <span *ngIf="loading"><span class="spinner-border spinner-border-sm me-2"></span>Creating...</span>
+      </button>
+
+      <p class="auth-switch">
+        Already have an account?
+        <a routerLink="/login">Sign In</a>
+      </p>
+
+    </div>
+  </div>
+
+</div>
