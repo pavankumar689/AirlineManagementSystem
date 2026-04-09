@@ -1,0 +1,211 @@
+<div class="landing-page">
+
+  <!-- ══ NAVBAR ══ -->
+  <nav class="lp-nav">
+    <div class="lp-brand"><i class="bi bi-airplane-fill"></i><span class="brand-white">Velo</span><span class="brand-orange">skyra</span></div>
+    <div class="lp-nav-links">
+      <a href="#features">Features</a>
+      <a href="#portals">Portals</a>
+      <button class="sound-toggle" (click)="toggleSound(bgVideo)" [title]="isMuted ? 'Unmute video' : 'Mute video'">
+        <i class="bi" [class.bi-volume-mute-fill]="isMuted" [class.bi-volume-up-fill]="!isMuted"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ══ HERO ══ -->
+  <section class="hero-section">
+
+    <!-- Video background -->
+    <div class="video-bg-container">
+      <div class="video-overlay"></div>
+      <video autoplay loop [muted]="isMuted" playsinline class="hero-video" #bgVideo>
+        <!-- User's custom flight video served from public folder -->
+        <source src="video/Website_Video_For_Flight_Bookings.mp4" type="video/mp4">
+      </video>
+    </div>
+
+    <!-- Hero Content -->
+    <div class="hero-content" id="portals">
+      <div class="hero-tag">
+        <i class="bi bi-airplane-engines"></i>
+        India's Premier Flight Booking
+      </div>
+
+      <h1 class="hero-title">
+        Fly Anywhere with<br />
+        <span class="brand-gradient">Veloskyra</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Search, book, and manage flights seamlessly.
+        Real-time availability · Instant confirmation · Group bookings
+      </p>
+
+      <!-- Stats Bar -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-number">500+</span>
+          <span class="stat-label">Destinations</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">2M+</span>
+          <span class="stat-label">Happy Flyers</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">99%</span>
+          <span class="stat-label">On-time Rate</span>
+        </div>
+      </div>
+
+      <!-- Portal Cards -->
+      <div class="portal-cards">
+
+        <!-- Passenger Portal — uses Angular routerLink to navigate to /home -->
+        <a routerLink="/home" class="portal-card passenger-card">
+          <div class="card-glow"></div>
+          <div class="card-icon passenger-icon">
+            <i class="bi bi-person-fill"></i>
+          </div>
+          <div class="card-content">
+            <div class="card-badge">For Travellers</div>
+            <h3>Passenger Portal</h3>
+            <p>Search flights, book tickets, manage bookings, get boarding passes and flight status alerts.</p>
+            <div class="card-cta">
+              Book a Flight <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+        </a>
+
+        <!-- Admin Portal — opens external port -->
+        <a href="http://localhost:4200" target="_blank" rel="noopener noreferrer" class="portal-card admin-card">
+          <div class="card-glow"></div>
+          <div class="card-icon admin-icon">
+            <i class="bi bi-shield-lock-fill"></i>
+          </div>
+          <div class="card-content">
+            <div class="card-badge admin-badge">Staff Only</div>
+            <h3>Admin Portal</h3>
+            <p>Manage flights, schedules, airports, bookings and all airline operations from a unified dashboard.</p>
+            <div class="card-cta admin-cta">
+              Admin Access <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- Wave separator -->
+    <div class="wave-sep">
+      <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+        <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="#f0f4ff"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ══ STATS ══ -->
+  <section class="stats-section">
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-icon"><i class="bi bi-airplane"></i></div>
+        <div class="stat-value">200+</div>
+        <div class="stat-label">Daily Flights</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="bi bi-geo-alt"></i></div>
+        <div class="stat-value">14</div>
+        <div class="stat-label">Destinations</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="bi bi-clock"></i></div>
+        <div class="stat-value">99.2%</div>
+        <div class="stat-label">On-Time Rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="bi bi-people"></i></div>
+        <div class="stat-value">50K+</div>
+        <div class="stat-label">Passengers</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FEATURES ══ -->
+  <section class="features-section" id="features">
+    <div class="section-header">
+      <div class="section-tag">Why Veloskyra</div>
+      <h2>Everything a modern traveller needs</h2>
+      <p>From search to boarding — designed for speed, comfort, and reliability.</p>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feat-icon" style="background: linear-gradient(135deg, #1a237e, #3949ab)">
+          <i class="bi bi-lightning-fill"></i>
+        </div>
+        <h4>Instant Booking</h4>
+        <p>Book your seat in seconds with real-time availability and instant payment confirmation.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0)">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <h4>Group Bookings</h4>
+        <p>Book for multiple passengers under one PNR. Cancel individual tickets anytime.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon" style="background: linear-gradient(135deg, #6f42c1, #a855f7)">
+          <i class="bi bi-bell-fill"></i>
+        </div>
+        <h4>Flight Alerts</h4>
+        <p>Subscribe to status notifications. Get email alerts the moment your flight status changes.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon" style="background: linear-gradient(135deg, #0a6640, #20c997)">
+          <i class="bi bi-qr-code-scan"></i>
+        </div>
+        <h4>Digital Boarding Pass</h4>
+        <p>Access your QR boarding pass from your phone. No printing required.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon" style="background: linear-gradient(135deg, #b45309, #f59e0b)">
+          <i class="bi bi-geo-alt-fill"></i>
+        </div>
+        <h4>Live Flight Status</h4>
+        <p>Real-time flight status tracking — Scheduled, Delayed, or Cancelled.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon" style="background: linear-gradient(135deg, #b91c1c, #ef4444)">
+          <i class="bi bi-shield-check-fill"></i>
+        </div>
+        <h4>Secure Payments</h4>
+        <p>Razorpay-powered payments. UPI, Cards and NetBanking — all supported.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ CTA ══ -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>Ready to take off?</h2>
+      <p>Join thousands of passengers flying with Veloskyra every day.</p>
+      <a routerLink="/home" class="cta-btn">
+        <i class="bi bi-airplane-fill me-2"></i>Start Booking Now
+      </a>
+    </div>
+  </section>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="lp-footer">
+    <div class="footer-brand">
+      <i class="bi bi-airplane-fill"></i> Velo<span>skyra</span>
+    </div>
+    <div class="footer-links">
+      <a routerLink="/home"><i class="bi bi-person me-1"></i>Passenger Portal</a>
+      <a href="http://localhost:4200" target="_blank"><i class="bi bi-shield-lock me-1"></i>Admin Portal</a>
+    </div>
+    <p class="footer-copy">&copy; 2026 Veloskyra Airlines. All rights reserved.</p>
+  </footer>
+
+</div>

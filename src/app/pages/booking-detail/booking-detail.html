@@ -1,0 +1,255 @@
+<div class="booking-detail-page">
+  <div class="container py-4">
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border text-primary"></div>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error" class="alert alert-danger">
+      <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+    </div>
+
+    <div *ngIf="!loading && booking">
+
+      <!-- Back Button -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <a routerLink="/my-bookings" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-arrow-left me-1"></i>Back to Bookings
+        </a>
+        <button class="btn btn-outline-primary btn-sm" (click)="printBooking()">
+          <i class="bi bi-printer me-1"></i>Print
+        </button>
+        <a [routerLink]="['/boarding-pass', booking.bookingId]"
+          class="btn btn-success btn-sm"
+          [class.disabled]="booking.bookingStatus === 'Cancelled'">
+          <i class="bi bi-qr-code me-1"></i>Boarding Pass
+        </a>
+      </div>
+
+      <!-- Success Alert -->
+      <div class="alert alert-success" *ngIf="success">
+        <i class="bi bi-check-circle me-2"></i>{{ success }}
+      </div>
+
+      <!-- Booking Header Card -->
+      <div class="card booking-header-card mb-4">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-6">
+              <div class="d-flex align-items-center gap-3">
+                <div class="booking-icon">
+                  <i class="bi bi-ticket-perforated-fill"></i>
+                </div>
+                <div>
+                  <h4 class="fw-bold mb-0 text-white">
+                    Booking #{{ booking.bookingId }}
+                  </h4>
+                  <small class="text-white-50">
+                    Booked on {{ booking.createdAt | date:'dd MMM yyyy, HH:mm' }}
+                  </small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 text-md-end mt-3 mt-md-0">
+              <span class="status-badge badge {{ getStatusClass(booking.bookingStatus) }}">
+                {{ booking.bookingStatus }}
+              </span>
+              <div class="text-white-50 small mt-1">
+                Payment: {{ booking.paymentStatus }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+
+        <!-- Left Column -->
+        <div class="col-md-7">
+
+          <!-- Flight Info Card -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="fw-bold mb-3" style="color:#1a237e">
+                <i class="bi bi-airplane me-2"></i>Flight Information
+              </h5>
+
+              <div class="route-card mb-3">
+                <div class="endpoint">
+                  <span class="city-code">{{ booking.origin }}</span>
+                  <small class="text-muted">Origin</small>
+                </div>
+                <div class="middle-section">
+                  <i class="bi bi-airplane-fill plane-icon"></i>
+                  <div class="route-line"></div>
+                </div>
+                <div class="endpoint text-end">
+                  <span class="city-code">{{ booking.destination }}</span>
+                  <small class="text-muted">Destination</small>
+                </div>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-6">
+                  <div class="info-box">
+                    <small class="text-muted d-block">Flight Number</small>
+                    <span class="fw-bold">{{ booking.flightNumber }}</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="info-box">
+                    <small class="text-muted d-block">Class</small>
+                    <span class="fw-bold">{{ booking.class }}</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="info-box">
+                    <small class="text-muted d-block">Departure</small>
+                    <span class="fw-bold">
+                      {{ booking.departureTime | date:'dd MMM yyyy' }}
+                    </span>
+                    <span class="text-primary d-block fw-bold">
+                      {{ booking.departureTime | date:'HH:mm' }}
+                    </span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="info-box">
+                    <small class="text-muted d-block">Boarding Time</small>
+                    <span class="fw-bold">{{ getBoardingTime() }}</span>
+                    <small class="text-muted d-block">
+                      (30 min before departure)
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Passenger Info Card -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="fw-bold mb-3" style="color:#1a237e">
+                <i class="bi bi-person me-2"></i>Passenger Information
+              </h5>
+              <div class="row g-3">
+                <div class="col-6">
+                  <div class="info-box">
+                    <small class="text-muted d-block">Name</small>
+                    <span class="fw-bold">{{ booking.passengerName }}</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="info-box">
+                    <small class="text-muted d-block">Email</small>
+                    <span class="fw-bold">{{ booking.passengerEmail }}</span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="info-box">
+                    <small class="text-muted d-block">Seat Number</small>
+                    <span class="seat-badge fw-bold">
+                      <i class="bi bi-chair me-1"></i>
+                      {{ booking.seatNumber }}
+                    </span>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="info-box">
+                    <small class="text-muted d-block">Baggage Allowance</small>
+                    <span class="fw-bold">
+                      {{ booking.class === 'Business' ? '25 kg' : '15 kg' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-md-5">
+
+          <!-- Price Breakdown -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="fw-bold mb-3" style="color:#1a237e">
+                <i class="bi bi-receipt me-2"></i>Price Breakdown
+              </h5>
+
+              <div class="price-row">
+                <span class="text-muted">Base Fare</span>
+                <span>₹{{ getBaseFare() }}</span>
+              </div>
+              <div class="price-row">
+                <span class="text-muted">Taxes & Fees (18%)</span>
+                <span>₹{{ getTax() }}</span>
+              </div>
+              <hr>
+              <div class="price-row total">
+                <span>Total Paid</span>
+                <span class="text-success">₹{{ booking.totalAmount }}</span>
+              </div>
+
+              <div *ngIf="booking.bookingStatus === 'Cancelled'"
+                class="refund-box mt-3">
+                <i class="bi bi-arrow-counterclockwise me-2"></i>
+                Refund Amount:
+                <strong>
+                  ₹{{ booking.totalAmount * 0.9 | number:'1.0-0' }}
+                </strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Important Info -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <h5 class="fw-bold mb-3" style="color:#1a237e">
+                <i class="bi bi-info-circle me-2"></i>Important Info
+              </h5>
+              <ul class="info-list">
+                <li>
+                  <i class="bi bi-clock text-primary"></i>
+                  Arrive at airport 2 hours before departure
+                </li>
+                <li>
+                  <i class="bi bi-bag text-primary"></i>
+                  {{ booking.class === 'Business' ? '25kg' : '15kg' }}
+                  free baggage allowed
+                </li>
+                <li>
+                  <i class="bi bi-person-badge text-primary"></i>
+                  Carry valid government ID proof
+                </li>
+                <li>
+                  <i class="bi bi-x-circle text-danger"></i>
+                  10% cancellation fee applies
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Cancel Button -->
+          <button
+            class="btn btn-outline-danger w-100"
+            *ngIf="booking.bookingStatus === 'Confirmed'"
+            [disabled]="cancelling"
+            (click)="cancelBooking()">
+            <span *ngIf="!cancelling">
+              <i class="bi bi-x-circle me-2"></i>Cancel Booking
+            </span>
+            <span *ngIf="cancelling">
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Cancelling...
+            </span>
+          </button>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

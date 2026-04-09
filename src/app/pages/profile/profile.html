@@ -1,0 +1,280 @@
+<div class="profile-page">
+
+  <!-- Header -->
+  <div class="profile-header">
+    <div class="container">
+      <div class="d-flex align-items-center gap-4">
+        <div class="avatar-circle">
+          {{ getInitials() }}
+        </div>
+        <div class="text-white">
+          <h3 class="fw-bold mb-0">{{ profile?.fullName }}</h3>
+          <p class="mb-0 opacity-75">{{ profile?.email }}</p>
+          <span class="badge bg-white text-primary mt-1">
+            {{ profile?.role }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container py-4">
+
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border text-primary"></div>
+    </div>
+
+    <div *ngIf="!loading">
+
+      <!-- Stats Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body">
+              <div class="stat-icon blue mx-auto mb-2">
+                <i class="bi bi-ticket-perforated-fill"></i>
+              </div>
+              <h3 class="fw-bold mb-0" style="color:#1a237e">
+                {{ bookings.length }}
+              </h3>
+              <small class="text-muted">Total Bookings</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body">
+              <div class="stat-icon green mx-auto mb-2">
+                <i class="bi bi-check-circle-fill"></i>
+              </div>
+              <h3 class="fw-bold mb-0 text-success">
+                {{ confirmedBookings }}
+              </h3>
+              <small class="text-muted">Confirmed Flights</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body">
+              <div class="stat-icon orange mx-auto mb-2">
+                <i class="bi bi-currency-rupee"></i>
+              </div>
+              <h3 class="fw-bold mb-0" style="color:#e65100">
+                ₹{{ totalSpent }}
+              </h3>
+              <small class="text-muted">Total Spent</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+
+        <!-- Update Profile -->
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="fw-bold mb-4" style="color:#1a237e">
+                <i class="bi bi-person-fill me-2"></i>Update Profile
+              </h5>
+
+              <div class="alert alert-success" *ngIf="profileSuccess">
+                <i class="bi bi-check-circle me-2"></i>{{ profileSuccess }}
+              </div>
+              <div class="alert alert-danger" *ngIf="profileError">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                {{ profileError }}
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Full Name</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-white">
+                    <i class="bi bi-person text-muted"></i>
+                  </span>
+                  <input type="text" class="form-control"
+                    [(ngModel)]="profileForm.fullName" />
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-semibold">Email</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-white">
+                    <i class="bi bi-envelope text-muted"></i>
+                  </span>
+                  <input type="email" class="form-control"
+                    [(ngModel)]="profileForm.email" />
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold text-muted">
+                  Member Since
+                </label>
+                <p class="fw-bold">
+                  {{ profile?.createdAt | date:'dd MMM yyyy' }}
+                </p>
+              </div>
+
+              <button class="btn btn-primary w-100"
+                (click)="updateProfile()" [disabled]="savingProfile">
+                <span *ngIf="!savingProfile">
+                  <i class="bi bi-save me-2"></i>Save Changes
+                </span>
+                <span *ngIf="savingProfile">
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  Saving...
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="col-md-6">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="fw-bold mb-4" style="color:#1a237e">
+                <i class="bi bi-shield-lock me-2"></i>Change Password
+              </h5>
+
+              <div class="alert alert-success" *ngIf="passwordSuccess">
+                <i class="bi bi-check-circle me-2"></i>{{ passwordSuccess }}
+              </div>
+              <div class="alert alert-danger" *ngIf="passwordError">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                {{ passwordError }}
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Current Password</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-white">
+                    <i class="bi bi-lock text-muted"></i>
+                  </span>
+                  <input type="password" class="form-control"
+                    [(ngModel)]="passwordForm.currentPassword"
+                    placeholder="••••••••" />
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">New Password</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-white">
+                    <i class="bi bi-lock-fill text-muted"></i>
+                  </span>
+                  <input type="password" class="form-control"
+                    [(ngModel)]="passwordForm.newPassword"
+                    placeholder="••••••••" />
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-semibold">
+                  Confirm New Password
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text bg-white">
+                    <i class="bi bi-lock-fill text-muted"></i>
+                  </span>
+                  <input type="password" class="form-control"
+                    [(ngModel)]="passwordForm.confirmPassword"
+                    placeholder="••••••••" />
+                </div>
+              </div>
+
+              <button class="btn btn-primary w-100"
+                (click)="changePassword()" [disabled]="savingPassword">
+                <span *ngIf="!savingPassword">
+                  <i class="bi bi-shield-check me-2"></i>Change Password
+                </span>
+                <span *ngIf="savingPassword">
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  Changing...
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Reward Points Card -->
+      <div class="row g-4 mt-1">
+        <div class="col-12">
+          <div class="card reward-card">
+            <div class="card-body">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold mb-0" style="color:#e65100">
+                  <i class="bi bi-star-fill me-2 text-warning"></i>Reward Points
+                </h5>
+                <div class="reward-balance-badge">
+                  <span class="reward-pts">{{ rewardPoints }}</span>
+                  <span class="reward-label">pts</span>
+                </div>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                  <div class="reward-info-box">
+                    <i class="bi bi-arrow-up-circle-fill text-success"></i>
+                    <div>
+                      <div class="fw-bold">Earn Rate</div>
+                      <small class="text-muted">1 pt per ₹10 spent</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="reward-info-box">
+                    <i class="bi bi-arrow-down-circle-fill text-primary"></i>
+                    <div>
+                      <div class="fw-bold">Redeem Rate</div>
+                      <small class="text-muted">1 pt = ₹1 discount</small>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="reward-info-box">
+                    <i class="bi bi-shield-fill-check text-warning"></i>
+                    <div>
+                      <div class="fw-bold">Max Discount</div>
+                      <small class="text-muted">Up to 60% per booking</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <h6 class="fw-bold text-muted mb-2" style="font-size:0.85rem;text-transform:uppercase;letter-spacing:1px">Recent Transactions</h6>
+              <div *ngIf="rewardHistory.length === 0" class="text-muted text-center py-3">
+                <i class="bi bi-star me-2"></i>No reward transactions yet. Book a flight to earn points!
+              </div>
+              <div class="reward-history">
+                <div *ngFor="let log of rewardHistory | slice:0:10" class="reward-row">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="reward-dot"
+                          [ngClass]="{'earned': log.type === 'Earned', 'redeemed': log.type === 'Redeemed', 'refunded': log.type === 'Refunded'}">
+                      <i [class]="log.type === 'Earned' ? 'bi bi-plus' : log.type === 'Refunded' ? 'bi bi-arrow-counterclockwise' : 'bi bi-dash'"></i>
+                    </span>
+                    <div>
+                      <div style="font-size:0.88rem;font-weight:600">{{ log.description }}</div>
+                      <div style="font-size:0.75rem;color:#9ca3af">{{ log.createdAt | date:'dd MMM yyyy, hh:mm a' }}</div>
+                    </div>
+                  </div>
+                  <span class="pts-chip"
+                        [ngClass]="{'positive': log.points > 0, 'negative': log.points < 0}">
+                    {{ log.points > 0 ? '+' : '' }}{{ log.points }} pts
+                  </span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

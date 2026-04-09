@@ -1,0 +1,141 @@
+<div class="search-results-page">
+
+  <!-- ══ HEADER ══ -->
+  <div class="results-header">
+    <div class="container">
+      <button class="back-btn" (click)="goBack()">
+        <i class="bi bi-arrow-left"></i> Back to Search
+      </button>
+
+      <div class="route-bar">
+        <div class="route-endpoint">
+          <span class="code">{{ origin }}</span>
+          <span class="label">Origin</span>
+        </div>
+        <div class="route-path">
+          <div class="path-line"></div>
+          <i class="bi bi-airplane-fill path-plane"></i>
+          <div class="path-line"></div>
+        </div>
+        <div class="route-endpoint text-end">
+          <span class="code">{{ destination }}</span>
+          <span class="label">Destination</span>
+        </div>
+        <div class="route-meta">
+          <i class="bi bi-calendar3 me-1"></i>{{ date | date:'EEE, dd MMM yyyy' }}
+          &nbsp;·&nbsp;
+          <i class="bi bi-briefcase me-1"></i>{{ seatClass }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BODY ══ -->
+  <div class="results-body">
+    <div class="container">
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="status-screen">
+        <div class="spinner-glow">
+          <div class="spinner-border text-primary" style="width:3rem;height:3rem;"></div>
+        </div>
+        <p class="mt-3 text-muted fw-semibold">Searching available flights...</p>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="error && !loading" class="alert alert-danger rounded-3 mt-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+      </div>
+
+      <!-- No Results -->
+      <div *ngIf="!loading && !error && schedules.length === 0" class="status-screen">
+        <div class="empty-icon"><i class="bi bi-airplane-engines"></i></div>
+        <h5 class="mt-3 fw-bold text-muted">No flights found</h5>
+        <p class="text-muted">Try different dates or routes</p>
+        <button class="btn btn-primary rounded-pill px-4" (click)="goBack()">
+          <i class="bi bi-search me-2"></i>Search Again
+        </button>
+      </div>
+
+      <!-- Results -->
+      <div *ngIf="!loading && schedules.length > 0">
+        <div class="results-count">
+          <i class="bi bi-check-circle-fill text-success me-2"></i>
+          <strong>{{ schedules.length }}</strong>&nbsp;flight(s) found
+        </div>
+
+        <div class="flight-card" *ngFor="let s of schedules">
+
+          <!-- Top row: Airline + Route + Seats + Price -->
+          <div class="flight-card-main">
+
+            <!-- Airline -->
+            <div class="airline-block">
+              <div class="airline-logo">{{ s.flight?.airline?.charAt(0) }}</div>
+              <div class="airline-text">
+                <span class="airline-name">{{ s.flight?.airline }}</span>
+                <span class="flight-no">{{ s.flight?.flightNumber }}</span>
+              </div>
+            </div>
+
+            <!-- Route times -->
+            <div class="route-block">
+              <div class="time-col">
+                <span class="time">{{ s.departureTime | date:'HH:mm' }}</span>
+                <span class="apt-code">{{ origin }}</span>
+              </div>
+              <div class="duration-col">
+                <span class="dur-label">{{ getDuration(s.departureTime, s.arrivalTime) }}</span>
+                <div class="flight-line">
+                  <div class="line-fill"></div>
+                  <i class="bi bi-airplane-fill plane-icon"></i>
+                  <div class="line-fill"></div>
+                </div>
+                <span class="nonstop">Non-stop</span>
+              </div>
+              <div class="time-col text-end">
+                <span class="time">{{ s.arrivalTime | date:'HH:mm' }}</span>
+                <span class="apt-code">{{ destination }}</span>
+              </div>
+            </div>
+
+            <!-- Seats -->
+            <div class="seats-block">
+              <span class="seats-num">{{ getAvailableSeats(s) }}</span>
+              <span class="seats-label">seats left</span>
+              <span class="class-badge"
+                [class.eco]="seatClass === 'Economy'"
+                [class.biz]="seatClass === 'Business'">
+                {{ seatClass }}
+              </span>
+            </div>
+
+            <!-- Price + CTA -->
+            <div class="price-block">
+              <span class="price-amt">₹{{ getPrice(s) }}</span>
+              <span class="price-per">per person</span>
+              <button class="book-btn"
+                (click)="bookFlight(s.id)"
+                [disabled]="getAvailableSeats(s) === 0"
+                [class.sold-out]="getAvailableSeats(s) === 0">
+                <i class="bi" [class.bi-lock-fill]="getAvailableSeats(s) > 0" [class.bi-x-circle]="getAvailableSeats(s) === 0"></i>
+                {{ getAvailableSeats(s) === 0 ? 'Sold Out' : 'Book Now' }}
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Bottom tag strip -->
+          <div class="flight-card-tags">
+            <span class="tag"><i class="bi bi-grid-3x3-gap me-1"></i>Seat Selection Available</span>
+            <span class="tag"><i class="bi bi-shield-fill-check me-1"></i>Free Cancellation within 24h</span>
+            <span class="tag"><i class="bi bi-lightning-charge-fill me-1"></i>Instant Confirmation</span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

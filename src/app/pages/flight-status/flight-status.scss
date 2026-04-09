@@ -1,0 +1,119 @@
+@import '../../shared-page';
+
+.flight-status-page { @extend .vsk-page; }
+.status-header { @extend .vsk-header; }
+
+.search-box {
+  max-width: 600px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  backdrop-filter: blur(10px);
+
+  input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: #fff;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    outline: none;
+    &::placeholder { color: rgba(255,255,255,0.6); }
+  }
+
+  span { padding: 0.75rem 0.75rem 0.75rem 1rem; color: rgba(255,255,255,0.7); }
+
+  button {
+    background: $accent;
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: darken(#f59e0b, 8%); }
+  }
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      &.scheduled { background: #3b82f6; }
+      &.delayed   { background: #f59e0b; }
+      &.cancelled { background: #ef4444; }
+    }
+  }
+}
+
+.flight-status-card {
+  @extend .vsk-card;
+
+  .flight-number {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: $primary;
+  }
+
+  .route-display {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    .endpoint .code {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: $primary;
+      display: block;
+    }
+
+    .middle {
+      flex: 1;
+      text-align: center;
+      .duration { font-size: 0.72rem; color: #9ca3af; }
+      .flight-line {
+        color: $primary;
+        font-size: 1rem;
+        border-top: 2px dashed #e8eaf6;
+        padding-top: 4px;
+      }
+    }
+  }
+
+  .time-row {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 700;
+
+    &.badge-scheduled { background: #dbeafe; color: #1d4ed8; }
+    &.badge-delayed   { background: #fef3c7; color: #b45309; }
+    &.badge-cancelled { background: #fee2e2; color: #b91c1c; }
+  }
+
+  &.delayed  { border-left: 4px solid $accent; }
+  &.cancelled { border-left: 4px solid #ef4444; }
+}

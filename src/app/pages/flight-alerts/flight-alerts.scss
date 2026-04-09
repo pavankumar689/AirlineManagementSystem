@@ -1,0 +1,14 @@
+@import '../../shared-page';
+
+.alerts-page { @extend .vsk-page; }
+.alerts-header { @extend .vsk-header; }
+
+.alert-card {
+  @extend .vsk-card;
+
+  &.active {
+    border-left: 4px solid #16a34a;
+  }
+}
+
+.flight-card { @extend .vsk-card; }

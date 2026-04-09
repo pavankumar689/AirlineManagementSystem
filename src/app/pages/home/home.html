@@ -1,0 +1,160 @@
+<!-- ══ HERO ══ -->
+<div class="home-hero">
+  <!-- Sky layers -->
+  <div class="sky-layer sky-top"></div>
+  <div class="sky-layer sky-mid"></div>
+  <div class="sky-layer sky-bottom"></div>
+  <!-- Animated clouds -->
+  <div class="cloud cloud-1"></div>
+  <div class="cloud cloud-2"></div>
+  <div class="cloud cloud-3"></div>
+  <div class="cloud cloud-4"></div>
+  <!-- Glowing sun orb -->
+  <div class="sun-orb"></div>
+  <div class="home-hero-overlay"></div>
+
+  <div class="home-hero-content">
+    <div class="hero-badge">
+      <i class="bi bi-airplane-engines me-2"></i>Real-time Flight Search
+    </div>
+    <h1>Fly Anywhere with <span>Veloskyra</span></h1>
+    <p>Search and book flights to your dream destination</p>
+
+    <!-- Search Card -->
+    <div class="search-glass-card">
+      <div class="search-glass-header">
+        <i class="bi bi-search me-2"></i>Search Flights
+      </div>
+
+      <div *ngIf="error" class="alert alert-danger py-2 mb-3 rounded-3">
+        <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+      </div>
+
+      <div class="search-fields">
+        <div class="search-field">
+          <label><i class="bi bi-geo-alt-fill me-1"></i>From</label>
+          <select [(ngModel)]="origin">
+            <option value="">Select Origin</option>
+            <option *ngFor="let a of airports" [value]="a.code">
+              {{ a.code }} — {{ a.city }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field-swap"><i class="bi bi-arrow-left-right"></i></div>
+
+        <div class="search-field">
+          <label><i class="bi bi-geo-fill me-1"></i>To</label>
+          <select [(ngModel)]="destination">
+            <option value="">Select Destination</option>
+            <option *ngFor="let a of airports" [value]="a.code">
+              {{ a.code }} — {{ a.city }}
+            </option>
+          </select>
+        </div>
+
+        <div class="search-field">
+          <label><i class="bi bi-calendar3 me-1"></i>Date</label>
+          <input type="date" [(ngModel)]="travelDate" [min]="travelDate" />
+        </div>
+
+        <div class="search-field">
+          <label><i class="bi bi-briefcase me-1"></i>Class</label>
+          <select [(ngModel)]="seatClass">
+            <option value="Economy">Economy</option>
+            <option value="Business">Business</option>
+          </select>
+        </div>
+
+        <button class="search-btn" (click)="search()">
+          <i class="bi bi-search me-1"></i>Search
+        </button>
+      </div>
+    </div>
+
+    <!-- Search History -->
+    <div class="search-history" *ngIf="searchHistory.length > 0">
+      <div class="history-header">
+        <i class="bi bi-clock-history me-1"></i>Recent Searches
+        <button (click)="clearHistory()">Clear</button>
+      </div>
+      <div class="history-chips">
+        <button class="history-chip" *ngFor="let h of searchHistory" (click)="repeatSearch(h)">
+          <i class="bi bi-airplane me-1"></i>
+          {{ h.origin }} → {{ h.destination }}
+          <span class="chip-date">{{ h.date | date:'dd MMM' }} · {{ h.class }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FEATURES ══ -->
+<div class="home-features">
+  <div class="container">
+    <div class="section-header">
+      <h2>Why Choose <span>Veloskyra?</span></h2>
+      <p>Premium flight booking experience built for modern travellers</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-glow"></div>
+          <div class="feature-icon blue">
+            <i class="bi bi-shield-fill-check"></i>
+          </div>
+          <h5>Secure Booking</h5>
+          <p>End-to-end encrypted payments powered by Razorpay. Your data is always safe.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-glow orange"></div>
+          <div class="feature-icon orange">
+            <i class="bi bi-lightning-charge-fill"></i>
+          </div>
+          <h5>Instant Confirmation</h5>
+          <p>Get your PNR and boarding pass the moment you complete your booking.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-glow teal"></div>
+          <div class="feature-icon teal">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+          </div>
+          <h5>Seat Selection</h5>
+          <p>Pick your preferred seat with our live seat map. Window seats available with smart pricing.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ POPULAR ROUTES ══ -->
+<div class="home-routes">
+  <div class="container">
+    <div class="section-header">
+      <h2>Popular <span>Destinations</span></h2>
+      <p>Top routes flown by Veloskyra passengers</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4" *ngFor="let a of airports.slice(0,3)">
+        <div class="route-card" (click)="destination = a.code; travelDate; search()">
+          <div class="route-card-body">
+            <div class="route-icon">
+              <i class="bi bi-airplane-fill"></i>
+            </div>
+            <div class="route-info">
+              <h6>{{ a.city }}</h6>
+              <small>{{ a.code }} · {{ a.country }}</small>
+            </div>
+            <div class="route-arrow">
+              <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,120 @@
+.booking-detail-page {
+  min-height: calc(100vh - 60px);
+  background: #f0f2f5;
+}
+
+.booking-header-card {
+  background: linear-gradient(135deg, #1a237e, #1565c0);
+  border: none;
+
+  .booking-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+  }
+
+  .status-badge {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+  }
+}
+
+.route-card {
+  background: #f0f2f5;
+  border-radius: 12px;
+  padding: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  .endpoint {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+
+    .city-code {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #1a237e;
+    }
+  }
+
+  .middle-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+
+    .plane-icon {
+      color: #1a237e;
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+
+    .route-line {
+      width: 80px;
+      height: 2px;
+      background: linear-gradient(to right, #1a237e, #42a5f5);
+      border-radius: 2px;
+    }
+  }
+}
+
+.info-box {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.seat-badge {
+  background: #e8eaf6;
+  color: #1a237e;
+  padding: 4px 12px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  font-size: 0.95rem;
+
+  &.total {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+}
+
+.refund-box {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f0f2f5;
+
+    &:last-child { border: none; }
+
+    i { font-size: 1rem; flex-shrink: 0; }
+  }
+}

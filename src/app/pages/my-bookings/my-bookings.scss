@@ -1,0 +1,39 @@
+@import '../../shared-page';
+
+.my-bookings-page { @extend .vsk-page; }
+
+.page-header { @extend .vsk-header; }
+
+.booking-card {
+  @extend .vsk-card;
+
+  .booking-id {
+    font-size: 1rem;
+    font-weight: 800;
+    color: $primary;
+  }
+
+  .route {
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .seat-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #e8eaf6;
+    color: $primary;
+    border-radius: 8px;
+    padding: 0.3rem 0.7rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .amount {
+    font-size: 1.3rem;
+    font-weight: 900;
+    color: $primary;
+  }
+}

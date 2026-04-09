@@ -1,0 +1,287 @@
+/* ════════════════════════════════════════════════
+   VELOSKYRA — Shared Page Chrome
+   Used by: My Bookings, Flight Status, Profile,
+            Flight Alerts, Baggage Info
+   ════════════════════════════════════════════════ */
+
+$primary: #1a237e;
+$accent:  #f59e0b;
+
+/* ── Generic page wrapper ── */
+.vsk-page {
+  min-height: 100vh;
+  background: #f4f6ff;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+/* ── Page header banner ── */
+.vsk-header {
+  background: linear-gradient(135deg, #0d1b6e 0%, #1a3a8f 50%, #1565c0 100%);
+  padding: 2.5rem 0 3.5rem;
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+
+  /* curved bottom edge */
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 36px;
+    background: #f4f6ff;
+    border-radius: 36px 36px 0 0;
+  }
+
+  /* decorative blobs */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .container { position: relative; z-index: 2; }
+
+  .vsk-header-icon {
+    width: 56px; height: 56px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #fff;
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-size: 1.9rem;
+    font-weight: 900;
+    margin-bottom: 0.25rem;
+  }
+
+  p {
+    opacity: 0.7;
+    font-size: 0.95rem;
+    margin: 0;
+  }
+}
+
+/* ── Page body ── */
+.vsk-body {
+  padding: 2rem 0 4rem;
+}
+
+/* ── Stat pills ── */
+.vsk-stats {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+
+  .vsk-stat {
+    background: #fff;
+    border: 1.5px solid #e8eaf6;
+    border-radius: 16px;
+    padding: 1rem 1.5rem;
+    text-align: center;
+    flex: 1;
+    min-width: 120px;
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(26,35,126,0.1);
+    }
+
+    .stat-num {
+      font-size: 1.8rem;
+      font-weight: 900;
+      line-height: 1;
+      color: $primary;
+      display: block;
+
+      &.green  { color: #15803d; }
+      &.orange { color: #b45309; }
+      &.red    { color: #b91c1c; }
+    }
+
+    .stat-lbl {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+      display: block;
+    }
+  }
+}
+
+/* ── Section title ── */
+.vsk-section-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: $primary;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ── Empty state ── */
+.vsk-empty {
+  text-align: center;
+  padding: 4rem 1rem;
+
+  .empty-icon {
+    font-size: 4rem;
+    color: #d1d5db;
+    margin-bottom: 1rem;
+  }
+
+  h5 { color: #6b7280; font-weight: 700; }
+  p  { color: #9ca3af; }
+}
+
+/* ── Status badges ── */
+.vsk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.85rem;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.confirmed { background: #dcfce7; color: #15803d; }
+  &.pending   { background: #fef3c7; color: #b45309; }
+  &.cancelled { background: #fee2e2; color: #b91c1c; }
+  &.scheduled { background: #dbeafe; color: #1d4ed8; }
+  &.delayed   { background: #fef3c7; color: #b45309; }
+}
+
+/* ── Card base ── */
+.vsk-card {
+  background: #fff;
+  border: 1.5px solid #e8eaf6;
+  border-radius: 20px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  margin-bottom: 1rem;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 35px rgba(26,35,126,0.1);
+    border-color: #c5cae9;
+  }
+
+  .vsk-card-body { padding: 1.5rem; }
+
+  .vsk-card-footer {
+    padding: 0.75rem 1.5rem;
+    background: #f8f9ff;
+    border-top: 1px solid #eef0fb;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+
+    .footer-tag {
+      font-size: 0.75rem;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      i { color: $primary; }
+    }
+  }
+}
+
+/* ── Primary action button ── */
+.vsk-btn-primary {
+  background: linear-gradient(135deg, $primary, #3949ab);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(26,35,126,0.3);
+    color: #fff;
+  }
+
+  &:disabled { opacity: 0.65; cursor: not-allowed; }
+}
+
+.vsk-btn-outline {
+  background: transparent;
+  color: $primary;
+  border: 1.5px solid $primary;
+  border-radius: 10px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+
+  &:hover { background: $primary; color: #fff; }
+}
+
+.vsk-btn-danger {
+  background: transparent;
+  color: #dc2626;
+  border: 1.5px solid #dc2626;
+  border-radius: 10px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  &:hover { background: #dc2626; color: #fff; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.vsk-btn-success {
+  background: linear-gradient(135deg, #15803d, #16a34a);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-decoration: none;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(21,128,61,0.3);
+    color: #fff;
+  }
+}

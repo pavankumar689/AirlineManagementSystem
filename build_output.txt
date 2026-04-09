@@ -1,0 +1,11 @@
+﻿[33mΓ¥»[39m Building...
+[32mΓ£ö[39m Building...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m        [2m | [22m [1mRaw size[22m[2m | [22m[1mEstimated transfer size[22m
+[32mmain-NNCSR6AX.js[39m   [2m | [22m[2mmain[22m         [2m | [22m[36m465.71 kB[39m[2m | [22m              [36m112.74 kB[39m
+[32mstyles-JXTFNHBR.css[39m[2m | [22m[2mstyles[22m       [2m | [22m[36m316.21 kB[39m[2m | [22m               [36m33.12 kB[39m
+[32mscripts-TTWY4XDY.js[39m[2m | [22m[2mscripts[22m      [2m | [22m [36m80.45 kB[39m[2m | [22m               [36m21.60 kB[39m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m[2m | [22m[1m[93m862.37 kB[39m[22m[2m | [22m              [1m167.46 kB[22m
+
+Application bundle generation failed. [7.953 seconds] - 2026-03-24T11:08:51.068Z
+
