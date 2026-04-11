@@ -316,12 +316,12 @@ classDiagram
 
 ```mermaid
 stateDiagram-v2
-  [*] --> Pending : Booking created\nawaiting payment
-  Pending --> Confirmed : Payment success\nseat deducted
-  Pending --> Expired : Payment timeout\ncleanup job
+  [*] --> Pending : Booking created<br/>awaiting payment
+  Pending --> Confirmed : Payment success<br/>seat deducted
+  Pending --> Expired : Payment timeout<br/>cleanup job
   Pending --> Cancelled : Payment failed
-  Confirmed --> Cancelled : Passenger cancellation\nor admin action
-  Cancelled --> Refunded : Rewards refunded\n(and payment gateway refund)
+  Confirmed --> Cancelled : Passenger cancellation<br/>or admin action
+  Cancelled --> Refunded : Rewards refunded<br/>(and payment gateway refund)
   Refunded --> [*]
   Expired --> [*]
 ```

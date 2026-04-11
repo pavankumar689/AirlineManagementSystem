@@ -19,16 +19,13 @@ flowchart LR
         BotUI[Chatbot Widget]
     end
 
-    PP --> GW[API Gateway (Ocelot)]
-    AP --> GW
-    BotUI --> GW
-
-    GW --> AUTH[Auth Service]
-    GW --> FLT[Flight Service]
-    GW --> BKG[Booking Service]
-    GW --> PAY[Payment Service]
-    GW --> NOTIF[Notification Service]
-    GW --> CHAT[Chatbot Service]
+    GW[API Gateway (Ocelot)]
+    AUTH[Auth Service]
+    FLT[Flight Service]
+    BKG[Booking Service]
+    PAY[Payment Service]
+    NOTIF[Notification Service]
+    CHAT[Chatbot Service]
 
     subgraph Infra
         SQL[(SQL Server)]
@@ -37,6 +34,17 @@ flowchart LR
         SMTP[(SMTP/Gmail)]
         Gemini[(Gemini API)]
     end
+
+    PP --> GW
+    AP --> GW
+    BotUI --> GW
+
+    GW --> AUTH
+    GW --> FLT
+    GW --> BKG
+    GW --> PAY
+    GW --> NOTIF
+    GW --> CHAT
 
     AUTH <-->|JWT Validations| GW
     AUTH --> SQL
