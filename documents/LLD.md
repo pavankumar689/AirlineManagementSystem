@@ -7,30 +7,46 @@ This document complements the HLD by detailing flows, data structures, and runti
 ## 1. Use Cases
 
 ```mermaid
-usecaseDiagram
-  actor Passenger as "Passenger"
-  actor Admin as "Administrator"
-  actor Support as "Support/Notification Agent"
-  actor Gateway as "External Systems\n(Razorpay/Gmail/Gemini)"
+flowchart LR
+    Passenger((Passenger))
+    Admin((Administrator))
+    Support((Support / Notification))
+    Gateway((External Systems))
 
-  Passenger --> (Browse Flights & Schedules)
-  Passenger --> (Book Seats)
-  Passenger --> (Pay via Razorpay)
-  Passenger --> (Manage Bookings & Cancellations)
-  Passenger --> (Redeem/Earn Reward Points)
-  Passenger --> (Subscribe to Flight Alerts)
-  Passenger --> (Chat with Aria)
+    UC1[[Browse Flights & Schedules]]
+    UC2[[Book Seats]]
+    UC3[[Pay via Razorpay]]
+    UC4[[Manage Bookings & Cancellations]]
+    UC5[[Redeem / Earn Reward Points]]
+    UC6[[Subscribe to Flight Alerts]]
+    UC7[[Chat with Aria]]
+    UC8[[Manage Airports/Flights/Schedules]]
+    UC9[[View System Records]]
+    UC10[[Create Admin Accounts]]
+    UC11[[Send Notifications]]
+    UC12[[Monitor Flight Alerts]]
+    UC13[[Process Payments]]
+    UC14[[Send Emails]]
+    UC15[[Provide AI Responses]]
 
-  Admin --> (Manage Airports/Flights/Schedules)
-  Admin --> (View All Bookings/Payments/Users)
-  Admin --> (Create Admin Accounts)
+    Passenger --> UC1
+    Passenger --> UC2
+    Passenger --> UC3
+    Passenger --> UC4
+    Passenger --> UC5
+    Passenger --> UC6
+    Passenger --> UC7
 
-  Support --> (Send Notifications)
-  Support --> (Monitor Flight Alerts)
+    Admin --> UC8
+    Admin --> UC9
+    Admin --> UC10
 
-  Gateway --> (Process Payments)
-  Gateway --> (Send Emails/SMS)
-  Gateway --> (Provide AI Responses)
+    Support --> UC11
+    Support --> UC12
+
+    Gateway --> UC13
+    Gateway --> UC14
+    Gateway --> UC15
 ```
 
 ---
@@ -39,56 +55,55 @@ usecaseDiagram
 
 ```mermaid
 graph LR
-  subgraph UI
-    PP[PassengerPortal (Angular)]
-    AP[AdminPortal (Angular)]
-    BotUI[Chat Widget]
-  end
-  subgraph Edge
-    GW[API Gateway\n(Ocelot + Polly)]
-  end
-  subgraph Services
-    AUTH[AuthService.API]
-    FLT[FlightService.API]
-    BKG[BookingService.API]
-    PAY[PaymentService.API]
-    NOTIF[NotificationService.API]
-    CHAT[ChatbotService.API]
-    CBOT[ChatbotService (FastAPI)]
-  end
-  subgraph Infra
-    SQL[(SQL Server)]
-    MQ[(RabbitMQ)]
-    Razorpay[(Razorpay)]
-    SMTP[(SMTP/Gmail)]
-    Gemini[(Gemini API)]
-  end
+    subgraph UI
+        PP[PassengerPortal (Angular)]
+        AP[AdminPortal (Angular)]
+        ChatWidget[Chat Widget]
+    end
+    subgraph Gateway
+        GW[API Gateway (Ocelot + Polly)]
+    end
+    subgraph Services
+        AUTH[AuthService.API]
+        FLT[FlightService.API]
+        BKG[BookingService.API]
+        PAY[PaymentService.API]
+        NOTIF[NotificationService.API]
+        CHAT[ChatbotService.API]
+    end
+    subgraph Infra
+        SQL[(SQL Server)]
+        MQ[(RabbitMQ)]
+        Razorpay[(Razorpay)]
+        SMTP[(SMTP/Gmail)]
+        Gemini[(Gemini API)]
+    end
 
-  PP --> GW
-  AP --> GW
-  BotUI --> GW
+    PP --> GW
+    AP --> GW
+    ChatWidget --> GW
 
-  GW --> AUTH
-  GW --> FLT
-  GW --> BKG
-  GW --> PAY
-  GW --> NOTIF
-  GW --> CHAT
+    GW --> AUTH
+    GW --> FLT
+    GW --> BKG
+    GW --> PAY
+    GW --> NOTIF
+    GW --> CHAT
 
-  AUTH --> SQL
-  FLT --> SQL
-  BKG --> SQL
-  PAY --> SQL
-  NOTIF --> SQL
+    AUTH --> SQL
+    FLT --> SQL
+    BKG --> SQL
+    PAY --> SQL
+    NOTIF --> SQL
 
-  BKG --> MQ
-  PAY --> MQ
-  FLT --> MQ
-  NOTIF --> MQ
+    BKG --> MQ
+    PAY --> MQ
+    FLT --> MQ
+    NOTIF --> MQ
 
-  PAY --> Razorpay
-  NOTIF --> SMTP
-  CHAT --> Gemini
+    PAY --> Razorpay
+    NOTIF --> SMTP
+    CHAT --> Gemini
 ```
 
 ---
@@ -380,6 +395,4 @@ flowchart TD
 - **Adapters:** Additional payment providers or notification channels can integrate by extending publisher/subscriber patterns.
 - **Observability:** NLog currently outputs to files/console; instrumentation (OpenTelemetry) can be layered on with minimal disruption thanks to centralized logging bootstrapping.
 
----
 
-**Document status:** Draft v1.0 – update whenever domain models, flows, or infrastructure changes.
