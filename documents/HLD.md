@@ -19,15 +19,13 @@ flowchart LR
         BotUI[Chatbot Widget]
     end
 
-    subgraph Services
-        GW[API Gateway (Ocelot)]
-        AUTH[Auth Service]
-        FLT[Flight Service]
-        BKG[Booking Service]
-        PAY[Payment Service]
-        NOTIF[Notification Service]
-        CHAT[Chatbot Service]
-    end
+    GW[API Gateway (Ocelot)]
+    AUTH[Auth Service]
+    FLT[Flight Service]
+    BKG[Booking Service]
+    PAY[Payment Service]
+    NOTIF[Notification Service]
+    CHAT[Chatbot Service]
 
     subgraph Infra
         SQL[(SQL Server)]
@@ -126,4 +124,3 @@ flowchart LR
 2. Introduce Redis for chatbot sessions and seat lock caching?
 3. Observability stack (OpenTelemetry, centralized dashboards) not yet defined.
 4. Automated failover for SQL/RabbitMQ to meet higher SLAs.
-
