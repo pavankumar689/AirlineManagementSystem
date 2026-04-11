@@ -56,27 +56,27 @@ flowchart LR
 ```mermaid
 graph LR
     subgraph UI
-        PP[PassengerPortal (Angular)]
-        AP[AdminPortal (Angular)]
-        ChatWidget[Chat Widget]
+        PP["PassengerPortal (Angular)"]
+        AP["AdminPortal (Angular)"]
+        ChatWidget["Chat Widget"]
     end
     subgraph Gateway
-        GW[API Gateway (Ocelot + Polly)]
+        GW["API Gateway (Ocelot + Polly)"]
     end
     subgraph Services
-        AUTH[AuthService.API]
-        FLT[FlightService.API]
-        BKG[BookingService.API]
-        PAY[PaymentService.API]
-        NOTIF[NotificationService.API]
-        CHAT[ChatbotService.API]
+        AUTH["AuthService.API"]
+        FLT["FlightService.API"]
+        BKG["BookingService.API"]
+        PAY["PaymentService.API"]
+        NOTIF["NotificationService.API"]
+        CHAT["ChatbotService.API"]
     end
     subgraph Infra
-        SQL[(SQL Server)]
-        MQ[(RabbitMQ)]
-        Razorpay[(Razorpay)]
-        SMTP[(SMTP/Gmail)]
-        Gemini[(Gemini API)]
+        SQL["SQL Server"]
+        MQ["RabbitMQ"]
+        Razorpay["Razorpay"]
+        SMTP["SMTP/Gmail"]
+        Gemini["Gemini API"]
     end
 
     PP --> GW
@@ -394,5 +394,4 @@ flowchart TD
 - **Event versioning:** Shared.Events library organizes DTOs; any breaking change requires versioned event names.
 - **Adapters:** Additional payment providers or notification channels can integrate by extending publisher/subscriber patterns.
 - **Observability:** NLog currently outputs to files/console; instrumentation (OpenTelemetry) can be layered on with minimal disruption thanks to centralized logging bootstrapping.
-
 

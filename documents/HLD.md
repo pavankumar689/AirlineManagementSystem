@@ -14,25 +14,25 @@ The solution follows a microservices style with clear domain ownership per servi
 ```mermaid
 flowchart LR
 subgraph Clients
-    PP[PassengerPortal SPA]
-    AP[AdminPortal SPA]
-    BotUI[Chatbot Widget]
+    PP["PassengerPortal SPA"]
+    AP["AdminPortal SPA"]
+    BotUI["Chatbot Widget"]
 end
 
-GW[API Gateway (Ocelot)]
-AUTH[Auth Service]
-FLT[Flight Service]
-BKG[Booking Service]
-PAY[Payment Service]
-NOTIF[Notification Service]
-CHAT[Chatbot Service]
+GW["API Gateway (Ocelot)"]
+AUTH["Auth Service"]
+FLT["Flight Service"]
+BKG["Booking Service"]
+PAY["Payment Service"]
+NOTIF["Notification Service"]
+CHAT["Chatbot Service"]
 
 subgraph Infra
-    SQL[(SQL Server)]
-    MQ[(RabbitMQ)]
-    Razorpay[(Razorpay)]
-    SMTP[(SMTP/Gmail)]
-    Gemini[(Gemini API)]
+    SQL["SQL Server"]
+    MQ["RabbitMQ"]
+    Razorpay["Razorpay"]
+    SMTP["SMTP/Gmail"]
+    Gemini["Gemini API"]
 end
 
 PP --> GW
