@@ -13,56 +13,56 @@ The solution follows a microservices style with clear domain ownership per servi
 
 ```mermaid
 flowchart LR
-    subgraph Clients
-        PP[PassengerPortal SPA]
-        AP[AdminPortal SPA]
-        BotUI[Chatbot Widget]
-    end
+subgraph Clients
+    PP[PassengerPortal SPA]
+    AP[AdminPortal SPA]
+    BotUI[Chatbot Widget]
+end
 
-    GW[API Gateway (Ocelot)]
-    AUTH[Auth Service]
-    FLT[Flight Service]
-    BKG[Booking Service]
-    PAY[Payment Service]
-    NOTIF[Notification Service]
-    CHAT[Chatbot Service]
+GW[API Gateway (Ocelot)]
+AUTH[Auth Service]
+FLT[Flight Service]
+BKG[Booking Service]
+PAY[Payment Service]
+NOTIF[Notification Service]
+CHAT[Chatbot Service]
 
-    subgraph Infra
-        SQL[(SQL Server)]
-        MQ[(RabbitMQ)]
-        Razorpay[(Razorpay)]
-        SMTP[(SMTP/Gmail)]
-        Gemini[(Gemini API)]
-    end
+subgraph Infra
+    SQL[(SQL Server)]
+    MQ[(RabbitMQ)]
+    Razorpay[(Razorpay)]
+    SMTP[(SMTP/Gmail)]
+    Gemini[(Gemini API)]
+end
 
-    PP --> GW
-    AP --> GW
-    BotUI --> GW
+PP --> GW
+AP --> GW
+BotUI --> GW
 
-    GW --> AUTH
-    GW --> FLT
-    GW --> BKG
-    GW --> PAY
-    GW --> NOTIF
-    GW --> CHAT
+GW --> AUTH
+GW --> FLT
+GW --> BKG
+GW --> PAY
+GW --> NOTIF
+GW --> CHAT
 
-    AUTH <-->|JWT Validations| GW
-    AUTH --> SQL
-    FLT --> SQL
-    BKG --> SQL
-    PAY --> SQL
-    NOTIF --> SQL
+AUTH <-->|JWT Validations| GW
+AUTH --> SQL
+FLT --> SQL
+BKG --> SQL
+PAY --> SQL
+NOTIF --> SQL
 
-    BKG -->|booking-created| MQ
-    PAY -->|payment-completed<br/>payment-failed| MQ
-    FLT -->|flight-status-changed| MQ
-    MQ --> NOTIF
-    MQ --> BKG
-    MQ --> PAY
+BKG -->|booking-created| MQ
+PAY -->|payment-completed<br/>payment-failed| MQ
+FLT -->|flight-status-changed| MQ
+MQ --> NOTIF
+MQ --> BKG
+MQ --> PAY
 
-    PAY --> Razorpay
-    NOTIF --> SMTP
-    CHAT --> Gemini
+PAY --> Razorpay
+NOTIF --> SMTP
+CHAT --> Gemini
 ```
 
 ### Design Tenets
